@@ -6,7 +6,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" id="content">
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">Attack on Checkers</ion-title>
@@ -22,12 +22,12 @@
       Create Game
     </ion-button>
     <br>
-    <ion-button>
-      Credits
+    <ion-button (click)="showAboutModal()">
+      About
     </ion-button>
     <br>
-    <ion-button>
-      About Attack on Checkers
+    <ion-button (click)="showCreditsModal()">
+      Credits
     </ion-button>
   </div>
 </ion-content>
