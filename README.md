@@ -8,3 +8,6 @@ SE181 project
 4. ```npm install```
 5. ```ionic serve ```
 
+# Github Actions Guide
+https://focisolutions.com/2020/04/github-actions-deploying-an-angular-app/
+
