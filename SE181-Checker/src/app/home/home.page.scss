@@ -23,6 +23,20 @@
   margin: 0;
 }
 
+ion-button {
+  width: 10em;
+}
+
 #container a {
   text-decoration: none;
+}
+
+ion-content {
+    --background: #fff url("../../assets/gifs/bkgd.gif") no-repeat center center / cover;
+}
+
+@media only screen and (max-width: 767px) {
+  ion-content {
+    --background: #fff url("../../assets/gifs/bkgd_vert.gif") no-repeat center center / cover;
+}
 }
