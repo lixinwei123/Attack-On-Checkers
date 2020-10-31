@@ -1,0 +1,32 @@
+ion-col{
+    height: inherit !important;
+    width: inherit !important;
+    display: table-cell;
+}
+.white-square{
+    background:transparent;
+}
+.black-square{
+    background-color: #54400d;
+}
+.board-square{
+    height:8.5vh;
+    width:8.5vh;
+}
+ion-grid{
+    display:table;
+}
+.checker-piece{
+    background: transparent;
+    ion-icon{
+        height: inherit;
+        display: table-cell;
+        width: inherit;
+    }
+}
+.white-piece{
+    color:red
+}
+.black-piece{
+    color:black
+}
