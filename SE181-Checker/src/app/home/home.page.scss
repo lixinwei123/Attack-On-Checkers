@@ -1,3 +1,8 @@
+@font-face {
+  font-family: ArchitectsDaughter;
+  src: url("../../assets/font/ArchitectsDaughter-Regular.ttf");
+}
+
 #container {
   text-align: center;
 
@@ -22,13 +27,18 @@
   margin: 0;
 }
 
+#container a {
+  text-decoration: none;
+}
+
+ion-title {
+  font-family: 'ArchitectsDaughter';
+  font-size: 2rem;
+}
+
 ion-button {
   width: 10em;
   margin: 1rem 0px;
-}
-
-#container a {
-  text-decoration: none;
 }
 
 ion-content {
