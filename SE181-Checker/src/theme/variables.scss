@@ -3,8 +3,14 @@
 
 /** Ionic CSS Variables **/
 :root {
+  ion-button:hover {
+    --background-hover: linear-gradient(to left, #FC8C4C 0%, #DF3416 100%);
+    --background-hover:red;
+    // text-shadow: 2px 2px red !important;
+  }
+
   /** primary **/
-  --ion-color-primary: #3880ff;
+  --ion-color-primary: #000000;
   --ion-color-primary-rgb: 56, 128, 255;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
@@ -228,5 +234,6 @@
     --ion-tab-bar-background: #1f1f1f;
 
     --ion-card-background: #1e1e1e;
+
   }
 }
