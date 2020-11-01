@@ -11,8 +11,8 @@ import { Component, OnInit } from '@angular/core';
 //
 export class GameBoardPage implements OnInit {
    checkerSquares = []; 
-   isPlayerWhite = true;
-   isPieceSelected = false;
+   isPlayerWhite = true; //This variable should be set from firebase upon making game via randomization 
+   isPieceSelected = false; 
    selectedPiece: any;
   constructor() {
     // this.initialBlackSide();
@@ -30,7 +30,7 @@ export class GameBoardPage implements OnInit {
       let rowList = []
       for(let j =0; j < colMax; j++){
         let row,col;
-        if(this.isPlayerWhite){
+        if(this.isPlayerWhite){ //if player is white, make sure to record location of square separate from black
           row = rowMax - 1 - i;
           col = colMax - 1 - j;
         }else{
@@ -52,12 +52,12 @@ export class GameBoardPage implements OnInit {
           if(i == 4 || i == 3){
             squareObj.isEmpty = false;
             squareObj.hasPiece = false;
-          }else if(i > 4){
+          }else if(i > 4){ //if board rendaring is at bottom,default player red/white is at bottom side
             squareObj.isEmpty=false;
             squareObj.hasPiece = true;
             squareObj.isWhite = this.isPlayerWhite;
           }
-          else{
+          else{ //if board is at top side, default, black player is at top side 
             squareObj.isEmpty = false;
             squareObj.hasPiece = true;
             squareObj.isWhite = !this.isPlayerWhite;
@@ -74,8 +74,10 @@ export class GameBoardPage implements OnInit {
       this.selectedPiece =squareObj
     }
 
+  //push this to firebase, make sure that checkerSquares list is subscribed to the changes of firebase
   makeMove(squareObj){
     let row, col,row2,col2;
+    //make sure that the perspecive position is correct 
     if(this.isPlayerWhite){
       row2 = 7 - this.selectedPiece.row;
       col2 = 7 - this.selectedPiece.col;
@@ -88,10 +90,14 @@ export class GameBoardPage implements OnInit {
       col = squareObj.col;
     }
 
-    if(this.isPieceSelected && squareObj.hasPiece == false && !squareObj.isEmpty && (row2 > row || this.selectedPiece.isKing)){
+    if(this.isPieceSelected && squareObj.hasPiece == false && !squareObj.isEmpty && ((row2 - 1 == row ) || (this.selectedPiece.isKing && (row2 -1 == row ||row2 + 1 == row)))){
       this.checkerSquares[row][col].hasPiece = true
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
       this.checkerSquares[row2][col2].hasPiece = false
+    }
+    if(row == 0){
+      this.checkerSquares[row][col].isKing = true
+      console.log("kinged!")
     }
     console.log(squareObj)
   }
