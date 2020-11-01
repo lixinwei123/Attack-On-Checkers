@@ -49,7 +49,7 @@ export class GameBoardPage implements OnInit {
           squareObj.isEmpty = true;
           squareObj.hasPiece = false;
         }else{
-          if(i == 4){
+          if(i == 4 || i == 3){
             squareObj.isEmpty = false;
             squareObj.hasPiece = false;
           }else if(i > 4){
