@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { Square } from 'src/models/square';
+import { Observable } from 'rxjs';
+import { DbService } from '../services/db.service';
 
 @Component({
   selector: 'app-game-board',
@@ -12,18 +15,26 @@ import { Component, OnInit } from '@angular/core';
 // { game
 
 export class GameBoardPage implements OnInit {
-   checkerSquares = []; //board
-   isPlayerWhite = true; //whoever creates the game should be the white player 
+   checkerSquares$: Observable<Array<Array<Square>>>; 
+   checkerSquares: Array<Array<Square>> = [];
+   isPlayerWhite = true; //This variable should be set from firebase upon making game via randomization 
    isPieceSelected = false; 
    selectedPiece: any;
    isWhiteMove = true;
-  constructor() {
+  constructor(
+    protected dbService: DbService,
+  ) {
+    // this.initialBlackSide();
     console.log(this.checkerSquares);
    }
 
   ngOnInit() {
-    this.initializePlayer();
-    this.initializeBoard();
+    if (this.isPlayerWhite) {
+      this.checkerSquares = this.initializeBoard();
+      let gameId = 'randomgameid';
+      this.dbService.updateObjectAtPath(`games/${gameId}/board`, this.checkerSquares);
+      this.checkerSquares$ = this.dbService.getObjectValues(`games/${gameId}/board`);
+    }
   }
 
   //if the player is host, dont change anything, else changew isplayerwhite to false 
@@ -31,9 +42,10 @@ export class GameBoardPage implements OnInit {
     
   }
   
-  initializeBoard(){
+  initializeBoard(): Array<Array<Square>> {
     let rowMax = 8;
     let colMax = 8;
+    let checkerSquares: Array<Array<Square>> = [];
     for(let i=0; i < rowMax;i++){
       let rowList = []
       for(let j =0; j < colMax; j++){
@@ -45,7 +57,7 @@ export class GameBoardPage implements OnInit {
           row = i;
           col = j;
         }
-        let squareObj = {
+        let squareObj: Square = {
           row: row,
           col: col,
           isEmpty: false, //is white square or dark square
@@ -73,10 +85,10 @@ export class GameBoardPage implements OnInit {
         }
         rowList.push(squareObj);
       }
-      this.checkerSquares.push(rowList) //push to firebase, only if player is white.
+      checkerSquares.push(rowList)
     }
-
-    //push this.checkerSquares to firebase under a new node which can be: {gameId: {board:checkerSquares}} 
+    return checkerSquares;
+    
   }
 
     selectPiece(squareObj){
@@ -90,7 +102,6 @@ export class GameBoardPage implements OnInit {
     if(!this.isPieceSelected || squareObj.hasPiece == true || this.selectedPiece.isWhite != this.isWhiteMove){
       return;
     }
-
     let row, col,row2,col2;
     //make sure that the perspecive position is correct 
     if(this.isPlayerWhite){
@@ -126,7 +137,7 @@ export class GameBoardPage implements OnInit {
       this.checkerSquares[row][col].isKing = true
       console.log("kinged!")
     }
-    console.log(squareObj)
+    this.dbService.updateObjectAtPath(`games/randomgameid/board`, this.checkerSquares);
   }
 
 }

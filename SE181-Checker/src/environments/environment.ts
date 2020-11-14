@@ -4,6 +4,7 @@
 
 export const environment = {
   production: false,
+  firebasePath: 'v1/',
   firebaseConfig: {
     apiKey: "AIzaSyDjV5oA2po9Y73AJe8-3fbFry4jU-zPSq4",
     authDomain: "attackoncheckers.firebaseapp.com",

@@ -7,7 +7,7 @@
 <ion-content>
   <!-- col.isEmpty is for white space -->
 <ion-grid >
-  <ion-row *ngFor = "let row of checkerSquares" >
+  <ion-row *ngFor = "let row of checkerSquares$ | async" >
     <!-- <div *ngFor = "let col of row" class = "board-square"> -->
       <!-- white square -->
       <!-- <ion-col *ngIf = "col.isEmpty" class = "white-square" (click) = "makeMove(col)">
