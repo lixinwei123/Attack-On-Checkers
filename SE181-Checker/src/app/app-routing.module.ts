@@ -19,6 +19,10 @@ const routes: Routes = [
     path: 'about',
     loadChildren: () => import('./about/about.component').then(m => m.AboutComponent)
   },
+  {
+    path: 'game-board',
+    loadChildren: () => import('./game-board/game-board.module').then( m => m.GameBoardPageModule)
+  }
 ];
 
 @NgModule({

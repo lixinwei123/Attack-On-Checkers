@@ -14,3 +14,8 @@ SE181 project
 
 1. `ionic generate page <pageName>`
 2. cd into `src/<pageName>`
+
+# Github Actions Guide
+
+https://focisolutions.com/2020/04/github-actions-deploying-an-angular-app/
+
