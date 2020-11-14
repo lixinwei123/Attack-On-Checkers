@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Square } from 'src/models/square';
-import { Observable } from 'rxjs';
+import { Observable, empty } from 'rxjs';
 import { DbService } from '../services/db.service';
 
 @Component({
@@ -100,6 +100,7 @@ export class GameBoardPage implements OnInit {
   //push this to firebase, make sure that checkerSquares list is subscribed to the changes of firebase
   makeMove(squareObj){
     if(!this.isPieceSelected || squareObj.hasPiece == true || this.selectedPiece.isWhite != this.isWhiteMove){
+      console.log("bad")
       return;
     }
     let row, col,row2,col2;
@@ -107,7 +108,7 @@ export class GameBoardPage implements OnInit {
     if(this.isPlayerWhite){
       row2 = 7 - this.selectedPiece.row;
       col2 = 7 - this.selectedPiece.col;
-      row = 7 - squareObj.row;
+      row = 7 - squareObj.row; 
       col = 7 - squareObj.col;
     }else{
       row2 = this.selectedPiece.row;
@@ -115,29 +116,100 @@ export class GameBoardPage implements OnInit {
       row = squareObj.row;
       col = squareObj.col;
     }
+    let isValidMove = false
+
     if(this.isWhiteMove){
-      if(!squareObj.isEmpty && ((row2 - 1 == row ) || (this.selectedPiece.isKing && (row2 -1 == row ||row2 + 1 == row)))){
-        this.checkerSquares[row][col].hasPiece = true
-        this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
-        this.checkerSquares[row2][col2].hasPiece = false
-        this.isWhiteMove = !this.isWhiteMove;
-        console.log("isPlayerWhiteMove",this.isWhiteMove)
+      // console.log(this.validateCapture([row,col],[row2,col2],this.isWhiteMove));
+      console.log("empty square")
+      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],this.isWhiteMove,this.selectedPiece.isKing) ) ||
+        (row2 - 1 == row ) || 
+      (this.selectedPiece.isKing || (row2 -1 == row ||row2 + 1 == row)))
+      ){
+        console.log("made move successfful")
+        isValidMove = true;
+      }
+      if(row == 0){
+        this.checkerSquares[row][col].isKing = true
+        console.log("kinged!")
       }
     }else{
-      if(!squareObj.isEmpty && ((row2 + 1 == row ) || (this.selectedPiece.isKing && (row2 + 1 == row ||row2 - 1 == row)))){
-        this.checkerSquares[row][col].hasPiece = true
-        this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
-        this.checkerSquares[row2][col2].hasPiece = false
-        this.isWhiteMove = !this.isWhiteMove;
-        console.log("isPlayerWhiteMove",this.isWhiteMove)
+      // console.log(this.validateCapture([row,col],[row2,col2],this.isWhiteMove));
+      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],this.isWhiteMove,this.selectedPiece.isKing) ) || (row2 + 1 == row ) || 
+      (this.selectedPiece.isKing || (row2 + 1 == row ||row2 - 1 == row))
+     
+      )){
+        console.log("made move successfful")
+        isValidMove = true;
+        if(row == 7){
+          this.checkerSquares[row][col].isKing = true
+          console.log("kinged!")
+        }
       }
     }
-
-    if(row == 0){
-      this.checkerSquares[row][col].isKing = true
-      console.log("kinged!")
+    if (isValidMove){
+      this.checkerSquares[row][col].hasPiece = true
+      this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
+      this.checkerSquares[row2][col2].hasPiece = false
+      this.isWhiteMove = !this.isWhiteMove;
+      if(this.selectedPiece.isKing){
+        this.checkerSquares[row][col].isKing = true;
+        this.checkerSquares[row2][col2].isKing = false
+      }
     }
     this.dbService.updateObjectAtPath(`games/randomgameid/board`, this.checkerSquares);
+  }
+
+  validateCapture(emptySquare,piece,isWhiteMove,isKing){
+    console.log("piece is",piece)
+    console.log("wang to move is",emptySquare)
+    if(emptySquare[0]== piece[0] && emptySquare[1] == piece[1]){
+      return true
+    }else if(emptySquare[0] < 0 || emptySquare[1] < 0 || emptySquare[0] > 7 ||  emptySquare[1] > 7){
+      return false
+    }
+    else{
+      let row,row2,col1,col2
+      if(isKing){
+        if(emptySquare[0] < piece[0]){
+          row = emptySquare[0]+ 1
+          row2 = row + 1;
+        }else{
+          row = emptySquare[0] -1 
+          row2 = row - 1
+        }
+      }
+      else if(isWhiteMove){
+        row = emptySquare[0]+ 1
+        row2 = row + 1;
+      }else{
+        row = emptySquare[0] -1 
+        row2 = row - 1
+      }
+      col1 = emptySquare[1] + 1
+      col2 = emptySquare[1] - 1
+      let cond1,cond2;
+      if (this.checkerSquares[row] != undefined && this.checkerSquares[row][col1] != undefined && this.checkerSquares[row][col1].hasPiece == true && this.checkerSquares[row][col1].isWhite != isWhiteMove){
+        console.log("exe1")
+        cond1 = this.validateCapture([row2,col1 + 1],piece,isWhiteMove,isKing)
+        if(cond1 == true){
+          this.checkerSquares[row][col1].hasPiece = false;
+          if(this.checkerSquares[row][col1].isKing){
+            this.checkerSquares[row][col1].isKing = false
+          }
+        }
+      }
+      if(this.checkerSquares[row] != undefined && this.checkerSquares[row][col2] != undefined && this.checkerSquares[row][col2].hasPiece == true && this.checkerSquares[row][col2].isWhite != isWhiteMove)
+      console.log("exe2")
+        cond2 = this.validateCapture([row2,col2 - 1],piece,isWhiteMove,isKing)
+        if(cond2 == true){
+          this.checkerSquares[row][col2].hasPiece = false;
+          if(this.checkerSquares[row][col1].isKing){
+            this.checkerSquares[row][col1].isKing = false
+          }
+        }
+      return cond1 || cond2
+    }
+
   }
 
 }
