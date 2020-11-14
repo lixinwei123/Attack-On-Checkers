@@ -1,6 +1,12 @@
 @font-face {
-  font-family: ArchitectsDaughter;
+  font-family: "ArchitectsDaughter";
   src: url("../../assets/font/ArchitectsDaughter-Regular.ttf");
+}
+
+@media only screen and (max-width: 767px) {
+  ion-content {
+    --background: #fff url("../../assets/img/bkgd_vert.png") no-repeat center center / cover;
+  }
 }
 
 #container {
@@ -36,17 +42,17 @@ ion-title {
   font-size: 2rem;
 }
 
+ion-content {
+  --background: #fff url("../../assets/img/bkgd.png") no-repeat center center / cover;
+}
+
 ion-button {
   width: 10em;
   margin: 1rem 0px;
-}
-
-ion-content {
-    --background: #fff url("../../assets/img/bkgd.png") no-repeat center center / cover;
-}
-
-@media only screen and (max-width: 767px) {
-  ion-content {
-    --background: #fff url("../../assets/img/bkgd_vert.png") no-repeat center center / cover;
-  }
+  --background: #000000;
+  font-family: 'Anime Ace', arial;
+  width: 60vh;
+  text-size-adjust: 30vh;
+  font-size: 14px;
+  size: "large";
 }

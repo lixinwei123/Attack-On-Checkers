@@ -14,15 +14,15 @@
   </ion-header>
 
   <div id="container">
-    <ion-button size="large" [routerLink]="['/join-game']">
+    <ion-button [routerLink]="['/join-game']">
       Play
     </ion-button>
     <br>
-    <ion-button size="large" (click)="showAboutModal()">
+    <ion-button (click)="showAboutModal()">
       About
     </ion-button>
     <br>
-    <ion-button size="large" (click)="showCreditsModal()">
+    <ion-button (click)="showCreditsModal()">
       Credits
     </ion-button>
   </div>
