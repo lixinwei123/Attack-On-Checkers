@@ -14,12 +14,8 @@
   </ion-header>
 
   <div id="container">
-    <ion-button size="large">
-      Join Game
-    </ion-button>
-    <br>
-    <ion-button size="large">
-      Create Game
+    <ion-button size="large" [routerLink]="['/join-game']">
+      Play
     </ion-button>
     <br>
     <ion-button size="large" (click)="showAboutModal()">
