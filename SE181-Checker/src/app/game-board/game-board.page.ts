@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { Square } from 'src/models/square';
+import { Observable } from 'rxjs';
+import { DbService } from '../services/db.service';
 
 @Component({
   selector: 'app-game-board',
@@ -10,22 +13,30 @@ import { Component, OnInit } from '@angular/core';
 //needs to populate checkerSquares by determining whether if one is black side or white side.
 //
 export class GameBoardPage implements OnInit {
-   checkerSquares = []; 
+   checkerSquares: Observable<Array<Array<Square>>>; 
    isPlayerWhite = true; //This variable should be set from firebase upon making game via randomization 
    isPieceSelected = false; 
    selectedPiece: any;
-  constructor() {
+  constructor(
+    protected dbService: DbService,
+  ) {
     // this.initialBlackSide();
     console.log(this.checkerSquares);
    }
 
   ngOnInit() {
-    this.initializeBoard();
+    if (this.isPlayerWhite) {
+      let checkerSquares = this.initializeBoard();
+      let gameId = 'randomgameid';
+      this.dbService.updateObjectAtPath(`games/${gameId}/board`, checkerSquares);
+      this.checkerSquares = this.dbService.getObjectValues(`games/${gameId}/board`);
+    }
   }
   
-  initializeBoard(){
+  initializeBoard(): Array<Array<Square>> {
     let rowMax = 8;
     let colMax = 8;
+    let checkerSquares: Array<Array<Square>> = [];
     for(let i=0; i < rowMax;i++){
       let rowList = []
       for(let j =0; j < colMax; j++){
@@ -37,7 +48,7 @@ export class GameBoardPage implements OnInit {
           row = i;
           col = j;
         }
-        let squareObj = {
+        let squareObj: Square = {
           row: row,
           col: col,
           isEmpty: false,
@@ -65,8 +76,10 @@ export class GameBoardPage implements OnInit {
         }
         rowList.push(squareObj);
       }
-      this.checkerSquares.push(rowList)
+      checkerSquares.push(rowList)
     }
+    return checkerSquares;
+    
   }
 
     selectPiece(squareObj){
