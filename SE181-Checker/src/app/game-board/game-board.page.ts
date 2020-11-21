@@ -25,6 +25,7 @@ export class GameBoardPage implements OnInit {
    selectedPiece: any;
    isWhiteMove = true;
    gameID: string = 'randomGameId';
+   singlePlayer = true;
   constructor(
     protected authService: AuthService,
     protected dbService: DbService,
@@ -42,11 +43,12 @@ export class GameBoardPage implements OnInit {
     this.activatedRoute.params.subscribe(params => {
       this.gameID = params['id'];
       this.initializePlayer().subscribe(_ => {
-        if (this.isPlayerWhite) {
+        // if (this.isPlayerWhite) {
           this.checkerSquares = this.initializeBoard();
+          console.log("isPlayerWhite",this.isPlayerWhite );
           this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
           this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
-        }
+        // }
 
       })
     })
@@ -220,7 +222,7 @@ export class GameBoardPage implements OnInit {
 
   validateCapture(emptySquare,piece,isWhiteMove,isKing){
     console.log("piece is",piece)
-    console.log("wang to move is",emptySquare)
+    console.log("want to move is",emptySquare)
     if(emptySquare[0]== piece[0] && emptySquare[1] == piece[1]){
       return true
     }else if(emptySquare[0] < 0 || emptySquare[1] < 0 || emptySquare[0] > 7 ||  emptySquare[1] > 7 || this.checkerSquares[emptySquare[0]][emptySquare[1]].hasPiece == true){
