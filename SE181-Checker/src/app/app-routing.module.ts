@@ -21,7 +21,11 @@ const routes: Routes = [
   },
   {
     path: 'game-board',
+<<<<<<< HEAD
     loadChildren: () => import('./game-board/game-board.module').then(m => m.GameBoardPageModule)
+=======
+    loadChildren: () => import('./game-board/game-board.module').then( m => m.GameBoardPageModule)
+>>>>>>> 168f68b517255664a61b704543d413bafe98f00b
   }
 ];
 
