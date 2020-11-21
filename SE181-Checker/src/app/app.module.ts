@@ -15,6 +15,7 @@ import { AngularFireDatabaseModule } from '@angular/fire/database';
 
 import { environment } from 'src/environments/environment';
 import { DbService } from './services/db.service';
+import { AuthService } from './services/auth.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -29,6 +30,7 @@ import { DbService } from './services/db.service';
   providers: [
     StatusBar,
     SplashScreen,
+    // AuthService,
     DbService,
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }
   ],

@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Square } from 'src/models/square';
-import { Observable, empty } from 'rxjs';
+import { Observable, empty, combineLatest } from 'rxjs';
 import { DbService } from '../services/db.service';
+import { AuthService } from '../services/auth.service';
+import { tap, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-game-board',
@@ -21,7 +23,9 @@ export class GameBoardPage implements OnInit {
    isPieceSelected = false; 
    selectedPiece: any;
    isWhiteMove = true;
+   gameID: string = 'randomGameId';
   constructor(
+    protected authService: AuthService,
     protected dbService: DbService,
   ) {
     // this.initialBlackSide();
@@ -29,17 +33,43 @@ export class GameBoardPage implements OnInit {
    }
 
   ngOnInit() {
+    this.initializePlayer();
     if (this.isPlayerWhite) {
       this.checkerSquares = this.initializeBoard();
-      let gameId = 'randomgameid';
-      this.dbService.updateObjectAtPath(`games/${gameId}/board`, this.checkerSquares);
-      this.checkerSquares$ = this.dbService.getObjectValues(`games/${gameId}/board`);
+      this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
+      this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
     }
   }
 
   //if the player is host, dont change anything, else changew isplayerwhite to false 
   initializePlayer(){
-    
+    const uid$ = this.authService.getUserId();
+    // First person in lobby is white. Second person is black.
+    const whitePlayerPath = `games/${this.gameID}/whitePlayerUID`
+    const isFirst$ = this.dbService.getObjectValues<string>(whitePlayerPath);
+    isFirst$.pipe(
+      take(1), // Ensures this only runs once per person.
+      tap(whiteUID => {
+        if (whiteUID) {
+          // You're the second person as white UID already exist.
+          this.isPlayerWhite = false;
+          uid$.subscribe(uid => {
+            this.dbService.updateObjectAtPath(`games/${this.gameID}`, {blackPlayerUID: uid})
+          })
+
+        }
+        else {
+          // You're the first person. You are now white.
+          this.isPlayerWhite = true;
+
+          // Claim my rights as the first player.
+          uid$.subscribe(uid => {
+            this.dbService.updateObjectAtPath(`games/${this.gameID}`, {whitePlayerUID: uid});
+          })
+
+        }
+      })
+    ).subscribe();
     
   }
   
