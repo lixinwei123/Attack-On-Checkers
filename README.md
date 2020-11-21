@@ -12,9 +12,8 @@ SE181 project
 
 # Creating pages
 
-1. cd into folder contain `src/app`
-2. `ionic generate page <pageName>`
-3. cd into `src/<pageName>`
+1. `ionic generate page <pageName>`
+2. cd into `src/<pageName>`
 
 # Github Actions Guide
 
