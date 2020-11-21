@@ -164,12 +164,13 @@ export class GameBoardPage implements OnInit {
     console.log("wang to move is",emptySquare)
     if(emptySquare[0]== piece[0] && emptySquare[1] == piece[1]){
       return true
-    }else if(emptySquare[0] < 0 || emptySquare[1] < 0 || emptySquare[0] > 7 ||  emptySquare[1] > 7){
+    }else if(emptySquare[0] < 0 || emptySquare[1] < 0 || emptySquare[0] > 7 ||  emptySquare[1] > 7 || this.checkerSquares[emptySquare[0]][emptySquare[1]].hasPiece == true){
       return false
     }
     else{
       let row,row2,col1,col2
       if(isKing){
+        //if the place you want to move to is 
         if(emptySquare[0] < piece[0]){
           row = emptySquare[0]+ 1
           row2 = row + 1;
@@ -188,23 +189,26 @@ export class GameBoardPage implements OnInit {
       col1 = emptySquare[1] + 1
       col2 = emptySquare[1] - 1
       let cond1,cond2;
+      //if the row underneath or above the row is defined and that row's right column has piece that is the opponent color to the row:
       if (this.checkerSquares[row] != undefined && this.checkerSquares[row][col1] != undefined && this.checkerSquares[row][col1].hasPiece == true && this.checkerSquares[row][col1].isWhite != isWhiteMove){
         console.log("exe1")
+        //validate again at the next empty square row to the right side
         cond1 = this.validateCapture([row2,col1 + 1],piece,isWhiteMove,isKing)
         if(cond1 == true){
-          this.checkerSquares[row][col1].hasPiece = false;
-          if(this.checkerSquares[row][col1].isKing){
+          this.checkerSquares[row][col1].hasPiece = false; //
+          if(this.checkerSquares[row][col1] != undefined && this.checkerSquares[row][col1].isKing){
             this.checkerSquares[row][col1].isKing = false
           }
         }
       }
+      //if the row underneath or above the row is defined and that row's left column has piece that is the opponent color to the row:
       if(this.checkerSquares[row] != undefined && this.checkerSquares[row][col2] != undefined && this.checkerSquares[row][col2].hasPiece == true && this.checkerSquares[row][col2].isWhite != isWhiteMove)
       console.log("exe2")
         cond2 = this.validateCapture([row2,col2 - 1],piece,isWhiteMove,isKing)
         if(cond2 == true){
           this.checkerSquares[row][col2].hasPiece = false;
-          if(this.checkerSquares[row][col1].isKing){
-            this.checkerSquares[row][col1].isKing = false
+          if(this.checkerSquares[row][col2] != undefined && this.checkerSquares[row][col2].isKing){
+            this.checkerSquares[row][col2].isKing = false
           }
         }
       return cond1 || cond2
