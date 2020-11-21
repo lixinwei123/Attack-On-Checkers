@@ -20,12 +20,13 @@ import { ActivatedRoute } from '@angular/router';
 export class GameBoardPage implements OnInit {
    checkerSquares$: Observable<Array<Array<Square>>>; 
    checkerSquares: Array<Array<Square>> = [];
+   uiSquares: Array<Array<Square>> = [];
    isPlayerWhite = true; //This variable should be set from firebase upon making game via randomization 
    isPieceSelected = false; 
    selectedPiece: any;
-   isWhiteMove = true;
+   isWhiteMove = true; //TODO: update firebase after each move
    gameID: string = 'randomGameId';
-   singlePlayer = true;
+   singlePlayer = false;
   constructor(
     protected authService: AuthService,
     protected dbService: DbService,
@@ -48,8 +49,14 @@ export class GameBoardPage implements OnInit {
           console.log("isPlayerWhite",this.isPlayerWhite );
           this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
           this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
+        // }else{
+        //   this.uiSquares = this.flipBoard(this.checkerSquares)
         // }
-
+          if (this.isPlayerWhite) {
+            this.uiSquares = this.checkerSquares;
+          }else{
+            this.uiSquares = this.flipBoard(this.checkerSquares);
+          }
       })
     })
   }
@@ -83,7 +90,17 @@ export class GameBoardPage implements OnInit {
 
       })
     );
-    
+  }
+
+  flipBoard(board){
+    for(let i = 0; i < board.length;i++){
+      for(let j = 0; j < board[i].length;j++){
+        board[i][j].row = 7 - board[i][j].row
+        board[i][j].col = 7 - board[i][j].col
+        board[i][j].isWhite = !board[i][j].isWhite
+      }
+    }
+    return board
   }
   
   initializeBoard(): Array<Array<Square>> {
@@ -101,6 +118,9 @@ export class GameBoardPage implements OnInit {
           row = i;
           col = j;
         }
+
+          // row = rowMax - 1 - i;
+          // col = colMax - 1 - j;
         let squareObj: Square = {
           row: row,
           col: col,
@@ -119,12 +139,12 @@ export class GameBoardPage implements OnInit {
           }else if(i > 4){ //if board rendaring is at bottom,default player red/white is at bottom side
             squareObj.isEmpty=false;
             squareObj.hasPiece = true;
-            squareObj.isWhite = this.isPlayerWhite;
+            squareObj.isWhite = true
           }
           else{ //if board is at top side, default, black player is at top side 
             squareObj.isEmpty = false;
             squareObj.hasPiece = true;
-            squareObj.isWhite = !this.isPlayerWhite;
+            squareObj.isWhite = false
           }
         }
         rowList.push(squareObj);
