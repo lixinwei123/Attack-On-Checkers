@@ -3,7 +3,7 @@ import { Square } from 'src/models/square';
 import { Observable, empty, combineLatest } from 'rxjs';
 import { DbService } from '../services/db.service';
 import { AuthService } from '../services/auth.service';
-import { tap, take } from 'rxjs/operators';
+import { tap, take, map } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -24,8 +24,8 @@ export class GameBoardPage implements OnInit {
    isPlayerWhite = true; //This variable should be set from firebase upon making game via randomization 
    isPieceSelected = false; 
    selectedPiece: any;
-   isWhiteMove = true; //TODO: update firebase after each move
-   gameID: string = 'randomGameId';
+   isWhiteMove$: Observable<boolean>; //TODO: update firebase after each move
+   gameID: string;
    singlePlayer = false;
   constructor(
     protected authService: AuthService,
@@ -44,11 +44,20 @@ export class GameBoardPage implements OnInit {
     this.activatedRoute.params.subscribe(params => {
       this.gameID = params['id'];
       this.initializePlayer().subscribe(_ => {
-        // if (this.isPlayerWhite) {
-          this.checkerSquares = this.initializeBoard();
+          if (this.isPlayerWhite) {
+            this.checkerSquares = this.initializeBoard();
+            this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
+          } 
+          else {
+            this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`).pipe(
+              map(board => {
+                return this.flipBoard(board)
+              })
+            )
+          }
           console.log("isPlayerWhite",this.isPlayerWhite );
           this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
-          this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
+          this.isWhiteMove$ = this.dbService.getObjectValues(`games/${this.gameID}/isWhiteMove`)
         // }else{
         //   this.uiSquares = this.flipBoard(this.checkerSquares)
         // }
@@ -160,12 +169,22 @@ export class GameBoardPage implements OnInit {
       this.selectedPiece =squareObj
       console.log("piece selected!",squareObj)
     }
+  
+  makeMove(squareObj: Square) {
+    // Everything needed before making a move goes into combineLatest. CombineLatest ensures all observables are done.
+    combineLatest([this.isWhiteMove$]).pipe(
+      take(1),
+    ).subscribe(res => {
+      const isWhiteMove: boolean = res[0];
+    })
+
+  }
 
   /**
    * 
    * @param squareObj the destination square
    */
-  makeMove(squareObj: Square){
+  tryMakeMove(squareObj: Square){
     // Does not make move under these conditions:
     // 1. Piece is not selected
     // 2. The square has a piece already on it

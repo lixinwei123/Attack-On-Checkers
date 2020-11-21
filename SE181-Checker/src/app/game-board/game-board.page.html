@@ -7,7 +7,7 @@
 <ion-content>
   <!-- col.isEmpty is for white space -->
 <ion-grid  *ngIf = "!singlePlayer">
-  <ion-row *ngFor = "let row of uiSquares " >
+  <ion-row *ngFor = "let row of checkerSquares$ | async" >
     <!-- multiplayer -->
     <div *ngFor = "let col of row" class = "board-square" > 
       <!-- white square -->
