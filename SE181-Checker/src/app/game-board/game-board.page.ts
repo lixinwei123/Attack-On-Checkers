@@ -175,7 +175,11 @@ export class GameBoardPage implements OnInit {
     combineLatest([this.isWhiteMove$]).pipe(
       take(1),
     ).subscribe(res => {
-      const isWhiteMove: boolean = res[0];
+      var isWhiteMove: boolean = res[0];
+      if (isWhiteMove == null) {
+        isWhiteMove = true;
+      }
+      this.tryMakeMove(squareObj, isWhiteMove);
     })
 
   }
@@ -184,12 +188,12 @@ export class GameBoardPage implements OnInit {
    * 
    * @param squareObj the destination square
    */
-  tryMakeMove(squareObj: Square){
+  tryMakeMove(squareObj: Square, isWhiteMove: boolean){
     // Does not make move under these conditions:
     // 1. Piece is not selected
     // 2. The square has a piece already on it
     // 3. When it's white move, has to select a white piece.
-    if(!this.isPieceSelected || squareObj.hasPiece == true || this.selectedPiece.isWhite != this.isWhiteMove){
+    if(!this.isPieceSelected || squareObj.hasPiece == true || this.selectedPiece.isWhite != isWhiteMove){
       console.log("bad")
       return;
     }
@@ -209,9 +213,9 @@ export class GameBoardPage implements OnInit {
     }
     let isValidMove = false
 
-    if(this.isWhiteMove){
+    if(isWhiteMove){
       console.log("empty square")
-      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],this.isWhiteMove,this.selectedPiece.isKing) ) ||
+      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) ||
         (row2 - 1 == row ) || 
       (this.selectedPiece.isKing || (row2 -1 == row ||row2 + 1 == row)))
       ){
@@ -224,7 +228,7 @@ export class GameBoardPage implements OnInit {
       }
     }else{
       // console.log(this.validateCapture([row,col],[row2,col2],this.isWhiteMove));
-      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],this.isWhiteMove,this.selectedPiece.isKing) ) || (row2 + 1 == row ) || 
+      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) || (row2 + 1 == row ) || 
       (this.selectedPiece.isKing || (row2 + 1 == row ||row2 - 1 == row))
      
       )){
@@ -240,7 +244,11 @@ export class GameBoardPage implements OnInit {
       this.checkerSquares[row][col].hasPiece = true
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
       this.checkerSquares[row2][col2].hasPiece = false
-      this.isWhiteMove = !this.isWhiteMove;
+
+      // Update isWhiteMove
+      this.dbService.updateObjectAtPath(`games/${this.gameID}`, 
+      {isWhiteMove: !isWhiteMove})
+
       if(this.selectedPiece.isKing){
         this.checkerSquares[row][col].isKing = true;
         this.checkerSquares[row2][col2].isKing = false
