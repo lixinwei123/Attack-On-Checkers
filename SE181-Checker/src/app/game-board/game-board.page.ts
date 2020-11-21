@@ -35,7 +35,9 @@ export class GameBoardPage implements OnInit {
    }
 
   ngOnInit() {
-
+    this.authService.getUserId().subscribe(uid => {
+      console.log('my user ID is ', uid);
+    })
     // Get Game ID from route
     this.activatedRoute.params.subscribe(params => {
       this.gameID = params['id'];
@@ -60,7 +62,7 @@ export class GameBoardPage implements OnInit {
       take(1), // Ensures this only runs once per person.
       tap(whiteUID => {
         uid$.subscribe(uid => {
-          if (whiteUID != uid) {
+          if (whiteUID && whiteUID != uid) {
             // You're the second person as white UID already exist.
             this.isPlayerWhite = false;
             uid$.subscribe(uid => {
@@ -155,6 +157,7 @@ export class GameBoardPage implements OnInit {
       console.log("bad")
       return;
     }
+
     let row, col,row2,col2;
     //make sure that the perspecive position is correct 
     if(this.isPlayerWhite){

@@ -54,6 +54,7 @@
           <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
           <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
         </button>
+        <!-- Black piece -->
         <button ion-button icon-only *ngIf="col.hasPiece && !col.isWhite" class = "checker-piece black-piece"  [disabled] = "isWhiteMove" (click) = "selectPiece(col)">
           <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
           <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
