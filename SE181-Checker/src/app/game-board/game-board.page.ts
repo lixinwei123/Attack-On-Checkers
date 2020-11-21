@@ -42,11 +42,11 @@ export class GameBoardPage implements OnInit {
     this.activatedRoute.params.subscribe(params => {
       this.gameID = params['id'];
       this.initializePlayer().subscribe(_ => {
-        if (this.isPlayerWhite) {
+        // if (this.isPlayerWhite) {
           this.checkerSquares = this.initializeBoard();
           this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
           this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
-        }
+        // }
 
       })
     })
@@ -58,32 +58,27 @@ export class GameBoardPage implements OnInit {
     // First person in lobby is white. Second person is black.
     const whitePlayerPath = `games/${this.gameID}/whitePlayerUID`
     const isFirst$ = this.dbService.getObjectValues<string>(whitePlayerPath);
-    return isFirst$.pipe(
+    return combineLatest([uid$, isFirst$]).pipe(
       take(1), // Ensures this only runs once per person.
-      tap(whiteUID => {
-        uid$.subscribe(uid => {
+      tap(res => {
+          const uid = res[0];
+          const whiteUID = res[1];
           if (whiteUID && whiteUID != uid) {
             // You're the second person as white UID already exist.
             this.isPlayerWhite = false;
-            uid$.subscribe(uid => {
-              this.dbService.updateObjectAtPath(`games/${this.gameID}`, {blackPlayerUID: uid})
-            })
-            return;
+            this.dbService.updateObjectAtPath(`games/${this.gameID}`, {blackPlayerUID: uid})
 
           }
+
           else {
             // You're the first person. You are now white.
             this.isPlayerWhite = true;
 
             // Claim my rights as the first player.
-            uid$.subscribe(uid => {
-              this.dbService.updateObjectAtPath(`games/${this.gameID}`, {whitePlayerUID: uid});
-            })
-            return;
+            this.dbService.updateObjectAtPath(`games/${this.gameID}`, {whitePlayerUID: uid});
 
           }
 
-        })
       })
     );
     

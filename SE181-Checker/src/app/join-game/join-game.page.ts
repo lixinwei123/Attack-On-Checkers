@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 @Component({
   selector: 'app-join-game',
   templateUrl: './join-game.page.html',
@@ -7,9 +8,15 @@ import { Router } from '@angular/router';
 })
 export class JoinGamePage implements OnInit {
 
-  constructor(private route: Router) { }
+  constructor(private route: Router,
+    private authService: AuthService,
+    ) { }
 
   ngOnInit() {
+  }
+
+  updateUsername(username: string) {
+
   }
  
 
