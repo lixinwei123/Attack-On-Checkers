@@ -4,6 +4,7 @@ import { Observable, empty, combineLatest } from 'rxjs';
 import { DbService } from '../services/db.service';
 import { AuthService } from '../services/auth.service';
 import { tap, take } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-game-board',
@@ -27,49 +28,62 @@ export class GameBoardPage implements OnInit {
   constructor(
     protected authService: AuthService,
     protected dbService: DbService,
+    protected activatedRoute: ActivatedRoute,
   ) {
     // this.initialBlackSide();
     console.log(this.checkerSquares);
    }
 
   ngOnInit() {
-    this.initializePlayer();
-    if (this.isPlayerWhite) {
-      this.checkerSquares = this.initializeBoard();
-      this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
-      this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
-    }
+
+    // Get Game ID from route
+    this.activatedRoute.params.subscribe(params => {
+      this.gameID = params['id'];
+      this.initializePlayer().subscribe(_ => {
+        if (this.isPlayerWhite) {
+          this.checkerSquares = this.initializeBoard();
+          this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
+          this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
+        }
+
+      })
+    })
   }
 
   //if the player is host, dont change anything, else changew isplayerwhite to false 
-  initializePlayer(){
+  initializePlayer(): Observable<any> {
     const uid$ = this.authService.getUserId();
     // First person in lobby is white. Second person is black.
     const whitePlayerPath = `games/${this.gameID}/whitePlayerUID`
     const isFirst$ = this.dbService.getObjectValues<string>(whitePlayerPath);
-    isFirst$.pipe(
+    return isFirst$.pipe(
       take(1), // Ensures this only runs once per person.
       tap(whiteUID => {
-        if (whiteUID) {
-          // You're the second person as white UID already exist.
-          this.isPlayerWhite = false;
-          uid$.subscribe(uid => {
-            this.dbService.updateObjectAtPath(`games/${this.gameID}`, {blackPlayerUID: uid})
-          })
+        uid$.subscribe(uid => {
+          if (whiteUID != uid) {
+            // You're the second person as white UID already exist.
+            this.isPlayerWhite = false;
+            uid$.subscribe(uid => {
+              this.dbService.updateObjectAtPath(`games/${this.gameID}`, {blackPlayerUID: uid})
+            })
+            return;
 
-        }
-        else {
-          // You're the first person. You are now white.
-          this.isPlayerWhite = true;
+          }
+          else {
+            // You're the first person. You are now white.
+            this.isPlayerWhite = true;
 
-          // Claim my rights as the first player.
-          uid$.subscribe(uid => {
-            this.dbService.updateObjectAtPath(`games/${this.gameID}`, {whitePlayerUID: uid});
-          })
+            // Claim my rights as the first player.
+            uid$.subscribe(uid => {
+              this.dbService.updateObjectAtPath(`games/${this.gameID}`, {whitePlayerUID: uid});
+            })
+            return;
 
-        }
+          }
+
+        })
       })
-    ).subscribe();
+    );
     
   }
   
@@ -193,7 +207,7 @@ export class GameBoardPage implements OnInit {
         this.checkerSquares[row2][col2].isKing = false
       }
     }
-    this.dbService.updateObjectAtPath(`games/randomgameid/board`, this.checkerSquares);
+    this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
   }
 
   // TODO: returns white if white wins. Black if black wins. Neither if no one has won.
