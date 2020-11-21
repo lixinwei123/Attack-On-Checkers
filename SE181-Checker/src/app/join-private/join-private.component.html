@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="close()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>
+      Join a Private Game
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+  <div>
+    <ion-text color="warning">Codes consist of lowercase characters and numbers.</ion-text>
+  </div>
+  <div>
+    <ion-item>
+      <ion-label>Code: </ion-label>
+      <ion-input type="text" [(ngModel)]="inputCode" clearInput></ion-input>
+    </ion-item>
+    <ion-button expand="block" (click)="join()">{{ joinText || 'Join' }}</ion-button>
+  </div>
+</ion-content>

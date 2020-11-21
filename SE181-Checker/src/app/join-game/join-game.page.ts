@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { JoinPrivateComponent } from "../join-private/join-private.component";
 
 @Component({
   selector: 'app-join-game',
@@ -6,10 +8,15 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./join-game.page.scss'],
 })
 export class JoinGamePage implements OnInit {
+  constructor(private modalCtrl: ModalController) { }
 
-  constructor() { }
+  async showJoinPrivateModal() {
+    const modal = await this.modalCtrl.create({
+      component: JoinPrivateComponent
+    });
+    await modal.present();
+  }
 
   ngOnInit() {
   }
-
 }

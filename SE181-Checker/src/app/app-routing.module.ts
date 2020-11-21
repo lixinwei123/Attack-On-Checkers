@@ -21,11 +21,7 @@ const routes: Routes = [
   },
   {
     path: 'game-board',
-    loadChildren: () => import('./game-board/game-board.module').then( m => m.GameBoardPageModule)
-  },
-  {
-    path: 'join-private',
-    loadChildren: () => import('./join-private/join-private.module').then( m => m.JoinPrivatePageModule)
+    loadChildren: () => import('./game-board/game-board.module').then(m => m.GameBoardPageModule)
   }
 ];
 

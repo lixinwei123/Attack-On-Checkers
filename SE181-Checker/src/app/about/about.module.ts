@@ -9,4 +9,4 @@ import { AboutComponent } from './about.component';
     entryComponents: [AboutComponent],
     exports: [AboutComponent]
 })
-export class AboutComponentModule {}
+export class AboutComponentModule { }
