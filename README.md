@@ -7,13 +7,14 @@ SE181 project
 1. Install Node https://nodejs.org/en/
 2. `npm install -g ionic`
 3. cd into folder contain `src/`
-4. `npm install`
-5. `ionic serve `
+4. `npm ci`
+5. `ionic serve`
 
 # Creating pages
 
-1. `ionic generate page <pageName>`
-2. cd into `src/<pageName>`
+1. cd into folder contain `src/app`
+2. `ionic generate page <pageName>`
+3. cd into `src/<pageName>`
 
 # Github Actions Guide
 
