@@ -1,0 +1,23 @@
+.imgContainer {
+  text-align: center;
+}
+
+ion-content {
+  --background: url(../../assets/gameBackground.jpg) no-repeat center/cover fixed;
+}
+
+ion-button {
+  font-family: 'Anime Ace', arial;
+  width: 60vh;
+  text-size-adjust: 30vh;
+  font-size: 14px;
+  --background: #000000;
+}
+
+.container {
+  text-align: center;
+  position: absolute;
+  top: 36vh;
+  left: 15vw;
+  width: 70vw;
+}
