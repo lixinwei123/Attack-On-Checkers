@@ -140,4 +140,9 @@ export class GameBoardPage implements OnInit {
     this.dbService.updateObjectAtPath(`games/randomgameid/board`, this.checkerSquares);
   }
 
+  // TODO: returns white if white wins. Black if black wins. Neither if no one has won.
+  checkWinCondition(): 'white' | 'black' | 'neither' {
+    return;
+  }
+
 }
