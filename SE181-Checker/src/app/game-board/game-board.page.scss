@@ -1,10 +1,14 @@
+
+ion-content {
+    --background: url(../../assets/battle.png) no-repeat center/cover fixed;
+  }
 ion-col{
     height: inherit !important;
     width: inherit !important;
     display: table-cell;
 }
 .white-square{
-    background:transparent;
+    background:white;
 }
 .black-square{
     background-color: #54400d;
@@ -15,6 +19,9 @@ ion-col{
 }
 ion-grid{
     display:table;
+    border-style: solid;
+    
+    
 }
 .checker-piece{
     background: transparent;
