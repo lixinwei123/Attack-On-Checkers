@@ -189,8 +189,9 @@ export class GameBoardPage implements OnInit {
   
   makeMove(squareObj: Square) {
     // Everything needed before making a move goes into combineLatest. CombineLatest ensures all observables are done.
-    combineLatest([this.isWhiteMove$]).pipe(
-      take(1),
+    const isWhiteMove$ = this.dbService.getObjectValues<boolean>(`games/${this.gameID}/isWhiteMove`)
+    combineLatest([isWhiteMove$]).pipe(
+      take(1)
     ).subscribe(res => {
       var isWhiteMove: boolean = res[0];
       if (isWhiteMove == null) {

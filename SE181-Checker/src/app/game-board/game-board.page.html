@@ -6,6 +6,8 @@
 
 <ion-content>
   <!-- col.isEmpty is for white space -->
+
+ <p>Is it white's turn: {{isWhiteMove$ | async}}</p>
 <ion-grid  *ngIf = "!singlePlayer">
   <ion-row *ngFor = "let row of checkerSquares$ | async; let r = index" >
     <!-- multiplayer -->
