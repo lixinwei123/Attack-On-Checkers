@@ -200,14 +200,24 @@ export class GameBoardPage implements OnInit {
   }
 
   // TODO: write a unit test
-  areSquaresDiagonal(source: Square, destination: Square): boolean {
+  /**
+   * 
+   * @param source 
+   * @param destination 
+   * @param isKing default is false. True for promoted pieces.
+   */
+  // For Kings, they can move diagonally backwards as well as forwards. Therefore we modified the isOneRowUp attribute
+  areSquaresDiagonal(source: Square, destination: Square, isKing: boolean = false): boolean {
     let row2, col2, row, col: number;
     row2 = source.row;
     col2 = source.col;
     row = destination.row;
     col = destination.col;
     
-    const isOneRowUp = row2 - 1 == row
+    var isOneRowUp = row2 - 1 == row
+    if (isKing) {
+      isOneRowUp = Math.abs(row2 - row) == 1
+    }
     const isOneColLeftOrRight = Math.abs(col2 - col) == 1
     return isOneRowUp && isOneColLeftOrRight;
   }
@@ -236,10 +246,10 @@ export class GameBoardPage implements OnInit {
           
     const doesSquareHavePiece: boolean = squareObj.hasPiece
     if (doesSquareHavePiece) {
-      // TODO: let's talk capture here
+      // Nothing to do here.
     }
     else {
-      // Empty square, no need to validate capture.
+      // Gonna have to talk capture somewhere here.
       const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj);
       if (areDiagonal) {
         console.log('move is valid')
