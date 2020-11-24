@@ -65,17 +65,12 @@ export class GameBoardPage implements OnInit {
               })
             )
           }
+
+          this.checkerSquares$.subscribe();
           console.log("isPlayerWhite",this.isPlayerWhite );
           this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
           this.isWhiteMove$ = this.dbService.getObjectValues(`games/${this.gameID}/isWhiteMove`)
-        // }else{
-        //   this.uiSquares = this.flipBoard(this.checkerSquares)
-        // }
-          if (this.isPlayerWhite) {
-            this.uiSquares = this.checkerSquares;
-          }else{
-            this.uiSquares = this.flipBoard(this.checkerSquares);
-          }
+
       })
     })
   }
@@ -114,15 +109,16 @@ export class GameBoardPage implements OnInit {
   // TODO: write unit test
   // Source: I definitely could not think of this on my own. Source here: https://stackoverflow.com/questions/19333002/rotate-a-matrix-array-by-180-degrees
   flipBoard(board){
-    const reversedBoard = board.reverse()
+    const newBoard = JSON.parse(JSON.stringify(board)) //deepcopy
+    const reversedBoard = newBoard.reverse()
     reversedBoard.forEach(function (row) {
       return row.reverse()
     })
     // fix row and col to ensure that i and j always matches up.
-    for(let i = 0; i < board.length;i++){
-      for(let j = 0; j < board[i].length;j++){
-        board[i][j].row = i;
-        board[i][j].col = j;
+    for(let i = 0; i < reversedBoard.length;i++){
+      for(let j = 0; j < reversedBoard[i].length;j++){
+        reversedBoard[i][j].row = i;
+        reversedBoard[i][j].col = j;
       }
     }
     return reversedBoard
@@ -299,7 +295,7 @@ export class GameBoardPage implements OnInit {
     // IMPORTANT: before black can update, we need to flip board again.
     var boardToUpdate = this.checkerSquares;
     if (!this.isPlayerWhite) {
-      this.checkerSquares = this.flipBoard(boardToUpdate)
+      boardToUpdate = this.flipBoard(boardToUpdate)
     }
     this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, boardToUpdate);
   }

@@ -9,7 +9,7 @@
 
  <p>Is it white's turn: {{isWhiteMove$ | async}}</p>
 <ion-grid  *ngIf = "!singlePlayer">
-  <ion-row *ngFor = "let row of checkerSquares$ | async; let r = index" >
+  <ion-row *ngFor = "let row of checkerSquares; let r = index" >
     <!-- multiplayer -->
     <div *ngFor = "let col of row; let c = index" class = "board-square" > 
       <!-- white square -->
