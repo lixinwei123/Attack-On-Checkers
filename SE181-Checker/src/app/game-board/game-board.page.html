@@ -8,6 +8,14 @@
   <!-- col.isEmpty is for white space -->
 
  <p>Is it white's turn: {{isWhiteMove$ | async}}</p>
+
+ <!-- TODO: remove these 2 buttons, these are for debugging purposes -->
+ <!-- To save a board, click on download. To upload a board, choose files and select your JSON file. then click upload. -->
+ <ion-button (click)="downloadObjectAsJson(checkerSquares, gameID)">Download Board as JSON</ion-button>
+ <ion-button (click)="uploadFile()">Upload board as JSON</ion-button>
+ <input type="file" id="selectFiles" value="Import" /><br />
+
+
 <ion-grid  *ngIf = "!singlePlayer">
   <ion-row *ngFor = "let row of checkerSquares; let r = index" >
     <!-- multiplayer -->

@@ -277,6 +277,12 @@ export class GameBoardPage implements OnInit {
       this.checkerSquares[row][col].hasPiece = true
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
       this.checkerSquares[row2][col2].hasPiece = false
+
+      // Promotion
+      if(row == 0){
+        this.checkerSquares[row][col].isKing = true
+        console.log("kinged!")
+      }
     }
     else {
       return;
@@ -365,6 +371,37 @@ export class GameBoardPage implements OnInit {
       return cond1 || cond2
     }
 
+  }
+
+  // Utility functions: source https://stackoverflow.com/questions/19721439/download-json-object-as-a-file-from-browser 
+  downloadObjectAsJson(exportObj, exportName){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+    var downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", exportName + ".json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  }
+  uploadFile() {
+    var that = this;
+    var files = document.getElementById('selectFiles').files;
+    console.log(files);
+    if (files.length <= 0) {
+      return false;
+    }
+
+    var fr = new FileReader();
+
+    fr.onload = function(e) { 
+    console.log(e);
+      var result: Square[][] = JSON.parse(e.target.result);
+      console.log('result', result)
+      that.checkerSquares = result;
+      that.dbService.updateObjectAtPath(`games/${that.gameID}/board`, that.checkerSquares)
+    }
+
+    fr.readAsText(files.item(0));
   }
 
 }
