@@ -23,7 +23,7 @@ export class GameBoardPage implements OnInit {
    uiSquares: Array<Array<Square>> = [];
    isPlayerWhite = true; //This variable should be set from firebase upon making game via randomization 
    isPieceSelected = false; 
-   selectedPiece: any;
+   selectedPiece: Square;
    isWhiteMove$: Observable<boolean>; //TODO: update firebase after each move
    gameID: string;
    singlePlayer = false;
@@ -120,13 +120,15 @@ export class GameBoardPage implements OnInit {
       let rowList = []
       for(let j =0; j < colMax; j++){
         let row,col;
-        if(this.isPlayerWhite){ //if player is white, make sure to record location of square separate from black
-          row = rowMax - 1 - i;
-          col = colMax - 1 - j;
-        }else{
+        // Note 2: We no longer need this if statement because we got the flipBoard function that Kevin wrote. 
+
+        // if(this.isPlayerWhite){ //if player is white, make sure to record location of square separate from black
+          // row = rowMax - 1 - i;
+          // col = colMax - 1 - j;
+        // }else{
           row = i;
           col = j;
-        }
+        // }
 
           // row = rowMax - 1 - i;
           // col = colMax - 1 - j;
@@ -184,6 +186,19 @@ export class GameBoardPage implements OnInit {
 
   }
 
+  // TODO: write a unit test
+  areSquaresDiagonal(source: Square, destination: Square): boolean {
+    let row2, col2, row, col: number;
+    row2 = source.row;
+    col2 = source.col;
+    row = destination.row;
+    col = destination.col;
+    
+    const isOneRowUp = row2 - 1 == row
+    const isOneColLeftOrRight = Math.abs(col2 - col) == 1
+    return isOneRowUp && isOneColLeftOrRight;
+  }
+
   /**
    * 
    * @param squareObj the destination square
@@ -200,60 +215,87 @@ export class GameBoardPage implements OnInit {
 
     let row, col,row2,col2;
     //make sure that the perspecive position is correct 
-    if(this.isPlayerWhite){
-      row2 = 7 - this.selectedPiece.row;
-      col2 = 7 - this.selectedPiece.col;
-      row = 7 - squareObj.row; 
-      col = 7 - squareObj.col;
-    }else{
-      row2 = this.selectedPiece.row;
-      col2 = this.selectedPiece.col;
-      row = squareObj.row;
-      col = squareObj.col;
-    }
+    // if(this.isPlayerWhite){
+    //   row2 = 7 - this.selectedPiece.row;
+    //   col2 = 7 - this.selectedPiece.col;
+    //   row = 7 - squareObj.row; 
+    //   col = 7 - squareObj.col;
+    // }else{
+      // Row2, col2 is the source. row, col is the destination.
+    row2 = this.selectedPiece.row;
+    col2 = this.selectedPiece.col;
+    row = squareObj.row;
+    col = squareObj.col;
+    // }
+    // console.log('row2', row2)
+    // console.log('col2', col2)
+    // console.log('row', row)
+    // console.log('col', col)
     let isValidMove = false
 
+          
     if(isWhiteMove){
-      console.log("empty square")
-      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) ||
-        (row2 - 1 == row ) || 
-      (this.selectedPiece.isKing || (row2 -1 == row ||row2 + 1 == row)))
-      ){
-        console.log("made move successfful")
-        isValidMove = true;
+      const doesSquareHavePiece: boolean = squareObj.hasPiece
+      if (doesSquareHavePiece) {
+        // TODO: let's talk capture here
       }
-      if(row == 0){
-        this.checkerSquares[row][col].isKing = true
-        console.log("kinged!")
-      }
-    }else{
-      // console.log(this.validateCapture([row,col],[row2,col2],this.isWhiteMove));
-      if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) || (row2 + 1 == row ) || 
-      (this.selectedPiece.isKing || (row2 + 1 == row ||row2 - 1 == row))
-     
-      )){
-        console.log("made move successfful")
-        isValidMove = true;
-        if(row == 7){
-          this.checkerSquares[row][col].isKing = true
-          console.log("kinged!")
+      else {
+        // Empty square, no need to validate capture.
+        const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj);
+        if (areDiagonal) {
+          console.log('move is valid')
+          isValidMove = true;
         }
+        
       }
+      // Note 1: We can't check if it's one row up & dark square. Because then the piece can move to any dark square a row above it, not just the one directly diagonal to it.
+      const isDarkSquare = !squareObj.isEmpty
+      // const isValidCapture = this.validateCapture([row, col], [row2, col2], isWhiteMove, this.selectedPiece.isKing)
+      const undetermined = row2 - 1 == row;
+      const isPromoted = this.selectedPiece.isKing
+      const x = (this.selectedPiece.isKing || (row2 -1 == row ||row2 + 1 == row))
+
+      // if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) ||
+      //   (row2 - 1 == row ) || 
+      // (this.selectedPiece.isKing || (row2 -1 == row ||row2 + 1 == row)))
+      // ){
+      //   console.log("made move successfful")
+      //   isValidMove = true;
+      // }
+      // if(row == 0){
+      //   this.checkerSquares[row][col].isKing = true
+      //   console.log("kinged!")
+      // }
     }
+    else{}
+    //   // console.log(this.validateCapture([row,col],[row2,col2],this.isWhiteMove));
+    //   if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) || (row2 + 1 == row ) || 
+    //   (this.selectedPiece.isKing || (row2 + 1 == row ||row2 - 1 == row))
+     
+    //   )){
+    //     console.log("made move successfful")
+    //     isValidMove = true;
+    //     if(row == 7){
+    //       this.checkerSquares[row][col].isKing = true
+    //       console.log("kinged!")
+    //     }
+    //   }
+    // }
     if (isValidMove){
       this.checkerSquares[row][col].hasPiece = true
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
       this.checkerSquares[row2][col2].hasPiece = false
-
-      // Update isWhiteMove
-      this.dbService.updateObjectAtPath(`games/${this.gameID}`, 
-      {isWhiteMove: !isWhiteMove})
-
-      if(this.selectedPiece.isKing){
-        this.checkerSquares[row][col].isKing = true;
-        this.checkerSquares[row2][col2].isKing = false
-      }
     }
+
+    //   // Update isWhiteMove
+    //   this.dbService.updateObjectAtPath(`games/${this.gameID}`, 
+    //   {isWhiteMove: !isWhiteMove})
+
+    //   if(this.selectedPiece.isKing){
+    //     this.checkerSquares[row][col].isKing = true;
+    //     this.checkerSquares[row2][col2].isKing = false
+    //   }
+    // }
     this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
   }
 

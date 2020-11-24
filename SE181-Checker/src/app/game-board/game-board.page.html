@@ -7,11 +7,13 @@
 <ion-content>
   <!-- col.isEmpty is for white space -->
 <ion-grid  *ngIf = "!singlePlayer">
-  <ion-row *ngFor = "let row of checkerSquares$ | async" >
+  <ion-row *ngFor = "let row of checkerSquares$ | async; let r = index" >
     <!-- multiplayer -->
-    <div *ngFor = "let col of row" class = "board-square" > 
+    <div *ngFor = "let col of row; let c = index" class = "board-square" > 
       <!-- white square -->
       <ion-col *ngIf = "col.isEmpty" class = "white-square" (click) = "makeMove(col)">
+        <!-- TODO: Test purposes, delete later -->
+        <p>{{col.row}}, {{col.col}}</p> 
         <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
           <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
           <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
