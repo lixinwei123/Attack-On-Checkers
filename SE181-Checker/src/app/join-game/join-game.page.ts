@@ -5,6 +5,8 @@ import { DbService } from '../services/db.service';
 import { ToastController } from '@ionic/angular';
 import { Observable } from 'rxjs';
 import { map, mergeMap, switchMap } from 'rxjs/operators';
+import { AlertController } from  '@ionic/angular';
+
 @Component({
   selector: 'app-join-game',
   templateUrl: './join-game.page.html',
@@ -18,6 +20,7 @@ export class JoinGamePage implements OnInit {
     private authService: AuthService,
     private dbService: DbService,
     private toastCtrl: ToastController,
+    private alertCtrl: AlertController,
     ) { }
 
   ngOnInit() {
@@ -46,6 +49,34 @@ export class JoinGamePage implements OnInit {
     let id = Math.random().toString(36).substr(2, 5);
     console.log("id",id)
     this.route.navigate(['/game-board',id]);
+  }
+  checkCode(){
+    
+  }
+  async presentPrompt() {
+    let alert = await this.alertCtrl.create({
+      inputs: [
+        {
+          id: 'id',
+          placeholder: 'Enter id'
+        },
+      ],
+      buttons: [
+        {
+          text: 'Submit',
+          handler: data => {
+            // if (User.isValid(data.username, data.password)) {
+            //   // logged in!
+            // } else {
+            //   // invalid login
+            //   return false;
+            // }
+            this.route.navigate(['/game-board',data[0]]); //TODO
+          }
+        }
+      ]
+    });
+    await alert.present();
   }
     
 
