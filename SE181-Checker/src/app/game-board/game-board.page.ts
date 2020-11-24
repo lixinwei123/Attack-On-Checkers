@@ -250,7 +250,7 @@ export class GameBoardPage implements OnInit {
     }
     else {
       // Gonna have to talk capture somewhere here.
-      const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj);
+      const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj, this.selectedPiece.isKing);
       if (areDiagonal) {
         console.log('move is valid')
         isValidMove = true;
@@ -286,6 +286,7 @@ export class GameBoardPage implements OnInit {
     if (isValidMove){
       this.checkerSquares[row][col].hasPiece = true
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
+      this.checkerSquares[row][col].isKing = this.selectedPiece.isKing;
       this.checkerSquares[row2][col2].hasPiece = false
 
       // Promotion
