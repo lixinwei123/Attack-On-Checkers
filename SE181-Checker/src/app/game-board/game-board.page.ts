@@ -46,12 +46,21 @@ export class GameBoardPage implements OnInit {
       this.initializePlayer().subscribe(_ => {
           if (this.isPlayerWhite) {
             this.checkerSquares = this.initializeBoard();
-            this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`);
+            this.checkerSquares$ = this.dbService.getObjectValues<Square[][]>(`games/${this.gameID}/board`).pipe(
+              tap(board => {
+                this.checkerSquares = board;
+              })
+            )
           } 
           else {
-            this.checkerSquares$ = this.dbService.getObjectValues(`games/${this.gameID}/board`).pipe(
+            this.checkerSquares$ = this.dbService.getObjectValues<Square[][]>(`games/${this.gameID}/board`).pipe(
               map(board => {
                 return this.flipBoard(board)
+
+              }),
+              
+              tap(board => {
+                this.checkerSquares = board;
               })
             )
           }
@@ -101,15 +110,21 @@ export class GameBoardPage implements OnInit {
     );
   }
 
+  // TODO: write unit test
+  // Source: I definitely could not think of this on my own. Source here: https://stackoverflow.com/questions/19333002/rotate-a-matrix-array-by-180-degrees
   flipBoard(board){
+    const reversedBoard = board.reverse()
+    reversedBoard.forEach(function (row) {
+      return row.reverse()
+    })
+    // fix row and col to ensure that i and j always matches up.
     for(let i = 0; i < board.length;i++){
       for(let j = 0; j < board[i].length;j++){
-        board[i][j].row = 7 - board[i][j].row
-        board[i][j].col = 7 - board[i][j].col
-        board[i][j].isWhite = !board[i][j].isWhite
+        board[i][j].row = i;
+        board[i][j].col = j;
       }
     }
-    return board
+    return reversedBoard
   }
   
   initializeBoard(): Array<Array<Square>> {
@@ -214,46 +229,27 @@ export class GameBoardPage implements OnInit {
     }
 
     let row, col,row2,col2;
-    //make sure that the perspecive position is correct 
-    // if(this.isPlayerWhite){
-    //   row2 = 7 - this.selectedPiece.row;
-    //   col2 = 7 - this.selectedPiece.col;
-    //   row = 7 - squareObj.row; 
-    //   col = 7 - squareObj.col;
-    // }else{
-      // Row2, col2 is the source. row, col is the destination.
     row2 = this.selectedPiece.row;
     col2 = this.selectedPiece.col;
     row = squareObj.row;
     col = squareObj.col;
-    // }
-    // console.log('row2', row2)
-    // console.log('col2', col2)
-    // console.log('row', row)
-    // console.log('col', col)
     let isValidMove = false
 
           
-    if(isWhiteMove){
-      const doesSquareHavePiece: boolean = squareObj.hasPiece
-      if (doesSquareHavePiece) {
-        // TODO: let's talk capture here
+    const doesSquareHavePiece: boolean = squareObj.hasPiece
+    if (doesSquareHavePiece) {
+      // TODO: let's talk capture here
+    }
+    else {
+      // Empty square, no need to validate capture.
+      const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj);
+      if (areDiagonal) {
+        console.log('move is valid')
+        isValidMove = true;
       }
-      else {
-        // Empty square, no need to validate capture.
-        const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj);
-        if (areDiagonal) {
-          console.log('move is valid')
-          isValidMove = true;
-        }
-        
-      }
-      // Note 1: We can't check if it's one row up & dark square. Because then the piece can move to any dark square a row above it, not just the one directly diagonal to it.
-      const isDarkSquare = !squareObj.isEmpty
-      // const isValidCapture = this.validateCapture([row, col], [row2, col2], isWhiteMove, this.selectedPiece.isKing)
-      const undetermined = row2 - 1 == row;
-      const isPromoted = this.selectedPiece.isKing
-      const x = (this.selectedPiece.isKing || (row2 -1 == row ||row2 + 1 == row))
+      
+    }
+      // Note 1: We can't check if it's one row up & dark square. Because then the piece can move to any dark square a row above it, not just the one directly diagonal to it. Which is why I added areSquaresDiagonal.
 
       // if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) ||
       //   (row2 - 1 == row ) || 
@@ -266,8 +262,6 @@ export class GameBoardPage implements OnInit {
       //   this.checkerSquares[row][col].isKing = true
       //   console.log("kinged!")
       // }
-    }
-    else{}
     //   // console.log(this.validateCapture([row,col],[row2,col2],this.isWhiteMove));
     //   if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) || (row2 + 1 == row ) || 
     //   (this.selectedPiece.isKing || (row2 + 1 == row ||row2 - 1 == row))
@@ -287,16 +281,22 @@ export class GameBoardPage implements OnInit {
       this.checkerSquares[row2][col2].hasPiece = false
     }
 
-    //   // Update isWhiteMove
-    //   this.dbService.updateObjectAtPath(`games/${this.gameID}`, 
-    //   {isWhiteMove: !isWhiteMove})
+    // Update isWhiteMove
+    this.dbService.updateObjectAtPath(`games/${this.gameID}`, 
+    {isWhiteMove: !isWhiteMove})
 
     //   if(this.selectedPiece.isKing){
     //     this.checkerSquares[row][col].isKing = true;
     //     this.checkerSquares[row2][col2].isKing = false
     //   }
     // }
-    this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
+
+    // IMPORTANT: before black can update, we need to flip board again.
+    var boardToUpdate = this.checkerSquares;
+    if (!this.isPlayerWhite) {
+      boardToUpdate = this.flipBoard(boardToUpdate)
+    }
+    this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, boardToUpdate);
   }
 
   // TODO: returns white if white wins. Black if black wins. Neither if no one has won.
