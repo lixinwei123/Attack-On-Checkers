@@ -5,6 +5,7 @@ import { DbService } from '../services/db.service';
 import { AuthService } from '../services/auth.service';
 import { tap, take, map } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
+import { Move } from 'src/models/move';
 
 @Component({
   selector: 'app-game-board',
@@ -298,13 +299,18 @@ export class GameBoardPage implements OnInit {
     // IMPORTANT: before black can update, we need to flip board again.
     var boardToUpdate = this.checkerSquares;
     if (!this.isPlayerWhite) {
-      boardToUpdate = this.flipBoard(boardToUpdate)
+      this.checkerSquares = this.flipBoard(boardToUpdate)
     }
     this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, boardToUpdate);
   }
 
   // TODO: returns white if white wins. Black if black wins. Neither if no one has won.
   checkWinCondition(): 'white' | 'black' | 'neither' {
+    return;
+  }
+
+  // TODO: check if there are any available capture moves for the player. Returns true/false, as well as a list of capture Moves the user can take. Move contains a source Square and a destination Square. 
+  checkCaptureMoves(): [boolean, Array<Move>] {
     return;
   }
 
