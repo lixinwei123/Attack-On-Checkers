@@ -281,6 +281,9 @@ export class GameBoardPage implements OnInit {
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
       this.checkerSquares[row2][col2].hasPiece = false
     }
+    else {
+      return;
+    }
 
     // Update isWhiteMove
     this.dbService.updateObjectAtPath(`games/${this.gameID}`, 
