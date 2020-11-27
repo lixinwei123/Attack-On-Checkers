@@ -6,7 +6,8 @@ import { AuthService } from '../services/auth.service';
 import { tap, take, map } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Move } from 'src/models/move';
-import { PassThrough } from 'stream';
+import { ToastController } from '@ionic/angular';
+// import { PassThrough } from 'stream';
 
 @Component({
   selector: 'app-game-board',
@@ -29,10 +30,12 @@ export class GameBoardPage implements OnInit {
    isWhiteMove$: Observable<boolean>; //TODO: update firebase after each move
    gameID: string;
    singlePlayer = false;
+   availCaptures: any;
   constructor(
     protected authService: AuthService,
     protected dbService: DbService,
     protected activatedRoute: ActivatedRoute,
+    protected toastCtrl: ToastController
   ) {
     // this.initialBlackSide();
     console.log(this.checkerSquares);
@@ -151,7 +154,8 @@ export class GameBoardPage implements OnInit {
           isEmpty: false, //is white square or dark square
           hasPiece:false, //check to see if this location has any piece
           isWhite: this.isPlayerWhite,  // purpose is to rendar board at different location depending on the player
-          isKing: false //if the piece is kinged 
+          isKing: false,//if the piece is kinged 
+          isSuggest: false //if this square should be suggested
         };
         if((i % 2 == 0 && j % 2 == 0) || (i % 2 == 1 && j % 2 == 1)){
           squareObj.isEmpty = true;
@@ -182,9 +186,10 @@ export class GameBoardPage implements OnInit {
     selectPiece(squareObj){
       this.isPieceSelected = true;
       this.selectedPiece =squareObj
-      // let helperBoard = this.generateHelperBoard()
-      // let availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard);
-      // console.log('goodies',availCaptures)
+      let helperBoard = this.generateHelperBoard()
+      this.availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard);
+      // this.restoreColor(true)
+      console.log('goodies',this.availCaptures)
       console.log("piece selected!",squareObj)
     }
   
@@ -230,12 +235,36 @@ export class GameBoardPage implements OnInit {
    * 
    * @param squareObj the destination square
    */
+
+  checkForceCapture(){
+    for(let i = 0; i < this.checkerSquares.length; i++){
+      for(let j = 0; j < this.checkerSquares[i].length; j++){
+        if(this.checkerSquares[i][j].isWhite == this.isPlayerWhite){
+          let helperBoard = this.generateHelperBoard()
+          let availMoves = this.checkCaptureMoves(this.checkerSquares[i][j],helperBoard)
+            if(availMoves[0] == true){
+              return true
+            }
+        }
+      }
+    }
+    return false
+  }
+
+  async presentToast(msg) {
+    const toast = await this.toastCtrl.create({
+      message: msg,
+      duration: 3000
+    });
+    toast.present();
+  }
+
   tryMakeMove(squareObj: Square, isWhiteMove: boolean){
     // Does not make move under these conditions:
     // 1. Piece is not selected
     // 2. The square has a piece already on it
     // 3. When it's white move, has to select a white piece.
-    if(!this.isPieceSelected || squareObj.hasPiece == true || this.selectedPiece.isWhite != isWhiteMove){
+    if(!this.isPieceSelected || squareObj.hasPiece == true || this.selectedPiece.isWhite != isWhiteMove || squareObj.isEmpty == true){
       console.log("bad")
       return;
     }
@@ -256,39 +285,56 @@ export class GameBoardPage implements OnInit {
       // Gonna have to talk capture somewhere here. 
 
       const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj, this.selectedPiece.isKing);
-      let helperBoard = this.generateHelperBoard()
-      let availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard,squareObj);
+      // let helperBoard = this.generateHelperBoard()
+      // let availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard);
       // console.log('available captures',availCaptures)
-      if (areDiagonal ) {
+      if (areDiagonal) {
+        if(this.checkForceCapture()){
+          this.presentToast("You must capture one of your opponent's pieces under the force capture rule")
+          return
+        }
         console.log('move is valid')
         isValidMove = true;
-      }else if(availCaptures[0]){
-        if(availCaptures[0] == true){
-          let destSquares = availCaptures[1].destSquare
-          console.log("hiya",availCaptures[1])
+      }else if(this.availCaptures[0]){
+          let destSquares = this.availCaptures[1].destSquare
+          let sourceSquare = this.availCaptures[1].sourceSquare
+          console.log("hiya",this.availCaptures[1])
           let sqrObjCpy = squareObj
-          while (sqrObjCpy.row != this.selectedPiece.row && sqrObjCpy.row != this.selectedPiece.col){
+          let badSquareChoice = true
+          for(let i = 0; i < destSquares.length; i ++){
+            if(destSquares[i].nextMove.row == squareObj.row && destSquares[i].nextMove.col == squareObj.col){
+              console.log("choice chosen is not permitted")
+              badSquareChoice = false
+              break
+            }
+          }
+          if(badSquareChoice){
+            return
+          }
+          console.log(squareObj,"square obj copy")
+          console.log(this.availCaptures[1].sourceSquare,"source square")
+          while ( ((sourceSquare.row * 10 + sourceSquare.col) != (sqrObjCpy.row * 10 + sqrObjCpy.col ))){
+            console.log(squareObj,"while loop test")
               for(let i = 0; i < destSquares.length; i ++){
                 if(destSquares[i].nextMove.row == sqrObjCpy.row && destSquares[i].nextMove.col == sqrObjCpy.col){
+                  console.log("they are equal!",destSquares[i].nextMove)
                   let enemyRow = destSquares[i].enemyPiece.row
                   let enemyCol = destSquares[i].enemyPiece.col
                   this.checkerSquares[enemyRow][enemyCol].hasPiece = false
                   this.checkerSquares[enemyRow][enemyCol].isKing = false
                   sqrObjCpy = destSquares[i].currentMove
-                  // if(destSquares[i].nextMove.row == row && destSquares[i].nextMove.col == col ){
-                  //   break
-                  // }
                 }
                 }
 
           }
 
-        }
+        // }
         isValidMove = true;
       }
     }
       // Note 1: We can't check if it's one row up & dark square. Because then the piece can move to any dark square a row above it, not just the one directly diagonal to it. Which is why I added areSquaresDiagonal.
       //I deleted all my earlier spaghetti nasty code hehe xdd- kevin
+  
     if (isValidMove){
       this.checkerSquares[row][col].hasPiece = true
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
@@ -309,24 +355,28 @@ export class GameBoardPage implements OnInit {
     this.dbService.updateObjectAtPath(`games/${this.gameID}`, 
     {isWhiteMove: !isWhiteMove})
 
-    //   if(this.selectedPiece.isKing){
-    //     this.checkerSquares[row][col].isKing = true;
-    //     this.checkerSquares[row2][col2].isKing = false
-    //   }
-    // }
-
     // IMPORTANT: before black can update, we need to flip board again.
     var boardToUpdate = this.checkerSquares;
     if (!this.isPlayerWhite) {
       boardToUpdate = this.flipBoard(boardToUpdate)
     }
     this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, boardToUpdate);
+    if(this.isPieceSelected){
+      // this.restoreColor(false)
+    }
   }
 
   // TODO: returns white if white wins. Black if black wins. Neither if no one has won.
   checkWinCondition(): 'white' | 'black' | 'neither' {
     return;
   }
+
+  restoreColor(isSuggest){
+    let destSquare = this.availCaptures[1].destSquare
+    for(let i = 0; i < destSquare.length;i++){
+      this.checkerSquares[destSquare[i].nextMove.row][destSquare[i].nextMove.col].isSuggest = isSuggest
+  }
+}
 
   // TODO: check if there are any available capture moves for the player. Returns true/false, as well as a list of capture Moves the user can take. Move contains a source Square and a destination Square. 
   //Notes: 
@@ -340,7 +390,7 @@ export class GameBoardPage implements OnInit {
   //7. for condition 3, suggest 2 rows down from the current selected piece
 
   //[boolean, Array<Move>]
-  checkCaptureMoves(selectedPiece,helperBoard,destSquare): any {
+  checkCaptureMoves(selectedPiece,helperBoard): any {
     let moves = {
       sourceSquare:selectedPiece,
       destSquare:[],
@@ -351,12 +401,12 @@ export class GameBoardPage implements OnInit {
     let upperRightSquare = helperBoard[selectedPiece.row - 1] == undefined ? false : helperBoard[selectedPiece.row - 1][selectedPiece.col + 1] 
     let lowerLeftSquare = helperBoard[selectedPiece.row + 1] == undefined ? false : helperBoard[selectedPiece.row + 1][selectedPiece.col - 1] 
     let lowerRightSquare = helperBoard[selectedPiece.row + 1] == undefined ? false : helperBoard[selectedPiece.row + 1][selectedPiece.col + 1] 
-    let upperLeftMoves = this.checkCaptureMoveHelper(selectedPiece,"ul",upperLeftSquare,helperBoard,destSquare)
-    let upperRightMoves = this.checkCaptureMoveHelper(selectedPiece,"ur",upperRightSquare,helperBoard,destSquare)
+    let upperLeftMoves = this.checkCaptureMoveHelper(selectedPiece,"ul",upperLeftSquare,helperBoard)
+    let upperRightMoves = this.checkCaptureMoveHelper(selectedPiece,"ur",upperRightSquare,helperBoard)
     let lowerLeftMoves, lowerRightMoves
     if(selectedPiece.isKing){
-       lowerLeftMoves = this.checkCaptureMoveHelper(selectedPiece,"ll",lowerLeftSquare,helperBoard,destSquare)
-       lowerRightMoves =  this.checkCaptureMoveHelper(selectedPiece,"lr",lowerRightSquare,helperBoard,destSquare)
+       lowerLeftMoves = this.checkCaptureMoveHelper(selectedPiece,"ll",lowerLeftSquare,helperBoard)
+       lowerRightMoves =  this.checkCaptureMoveHelper(selectedPiece,"lr",lowerRightSquare,helperBoard)
     }else{
       lowerLeftMoves = [false,[]]
       lowerRightMoves = [false,[]]
@@ -386,7 +436,7 @@ export class GameBoardPage implements OnInit {
 
  
   //The move object should contain {enemyPiece and Valid next move piece}
-  checkCaptureMoveHelper(selectedPiece,direction,adjacentSquare,helperBoard,destSquare): [boolean,Array<Move>]{
+  checkCaptureMoveHelper(selectedPiece,direction,adjacentSquare,helperBoard): [boolean,Array<Move>]{
     let move = []
     if(adjacentSquare && adjacentSquare.hasPiece == true && adjacentSquare.isWhite != selectedPiece.isWhite && adjacentSquare.traversed == false){
       let newSelectedPiece
@@ -405,7 +455,7 @@ export class GameBoardPage implements OnInit {
         newSelectedPiece.isKing = this.selectedPiece.isKing 
           helperBoard[adjacentSquare.row][adjacentSquare.col].traversed = true //avoid duplicate for king
           //recursively look at the next sets of available moves
-        let recursiveMove = this.checkCaptureMoves(newSelectedPiece,helperBoard,destSquare) 
+        let recursiveMove = this.checkCaptureMoves(newSelectedPiece,helperBoard) 
         move.push({enemyPiece: adjacentSquare,
           nextMove: newSelectedPiece,
           currentMove:selectedPiece

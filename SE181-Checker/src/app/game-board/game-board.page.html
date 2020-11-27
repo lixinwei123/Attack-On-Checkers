@@ -8,7 +8,7 @@
   <!-- col.isEmpty is for white space -->
 
  <p>Is it white's turn: {{isWhiteMove$ | async}}</p>
-
+<!-- <button (click) = "test($event)" >hwello</button> -->
  <!-- TODO: remove these 2 buttons, these are for debugging purposes -->
  <!-- To save a board, click on download. To upload a board, choose files and select your JSON file. then click upload. -->
  <ion-button (click)="downloadObjectAsJson(checkerSquares, gameID)">Download Board as JSON</ion-button>
@@ -35,7 +35,19 @@
       </ion-col>
 
       <!-- black square -->
-      <ion-col *ngIf = "!col.isEmpty" class = "black-square " (click) = "makeMove(col)">
+      <ion-col *ngIf = "!col.isEmpty && !col.isSuggest" class = "black-square " (click) = "makeMove(col)">
+        <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+        <button ion-button icon-only *ngIf="col.hasPiece && !col.isWhite" class = "checker-piece black-piece" [disabled] = "isPlayerWhite" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+        <button *ngIf = "!col.hasPiece" class = "checker-piece"></button>
+      </ion-col>
+
+      <ion-col *ngIf = "!col.isEmpty && col.isSuggest" class = "highlight-square " (click) = "makeMove(col)">
         <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
           <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
           <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
