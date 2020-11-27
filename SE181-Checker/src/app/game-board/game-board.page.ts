@@ -459,25 +459,26 @@ export class GameBoardPage implements OnInit {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   }
-  // uploadFile() {
-  //   var that = this;
-  //   var files = document.getElementById('selectFiles').files;
-  //   console.log(files);
-  //   if (files.length <= 0) {
-  //     return false;
-  //   }
+  uploadFile() {
+    var that = this;
+    var div: any = document.getElementById('selectFiles')
+    var files = div.files;
+    console.log(files);
+    if (files.length <= 0) {
+      return false;
+    }
 
-  //   var fr = new FileReader();
+    var fr = new FileReader();
 
-  //   fr.onload = function(e) { 
-  //   console.log(e);
-  //     var result: Square[][] = JSON.parse(e.target.result);
-  //     console.log('result', result)
-  //     that.checkerSquares = result;
-  //     that.dbService.updateObjectAtPath(`games/${that.gameID}/board`, that.checkerSquares)
-  //   }
+    fr.onload = function(e: any) { 
+    console.log(e);
+      var result: Square[][] = JSON.parse(e.target.result);
+      console.log('result', result)
+      that.checkerSquares = result;
+      that.dbService.updateObjectAtPath(`games/${that.gameID}/board`, that.checkerSquares)
+    }
 
-  //   fr.readAsText(files.item(0));
-  // }
+    fr.readAsText(files.item(0));
+  }
 
 }
