@@ -4,5 +4,6 @@ export interface Square {
     isEmpty: boolean,
     hasPiece: boolean,
     isWhite: boolean,
-    isKing: boolean
+    isKing: boolean,
+    isSuggest: boolean
 }
