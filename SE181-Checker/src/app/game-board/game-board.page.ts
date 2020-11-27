@@ -6,6 +6,7 @@ import { AuthService } from '../services/auth.service';
 import { tap, take, map } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Move } from 'src/models/move';
+import { PassThrough } from 'stream';
 
 @Component({
   selector: 'app-game-board',
@@ -181,6 +182,9 @@ export class GameBoardPage implements OnInit {
     selectPiece(squareObj){
       this.isPieceSelected = true;
       this.selectedPiece =squareObj
+      // let helperBoard = this.generateHelperBoard()
+      // let availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard);
+      // console.log('goodies',availCaptures)
       console.log("piece selected!",squareObj)
     }
   
@@ -249,40 +253,42 @@ export class GameBoardPage implements OnInit {
       // Nothing to do here.
     }
     else {
-      // Gonna have to talk capture somewhere here.
+      // Gonna have to talk capture somewhere here. 
+
       const areDiagonal = this.areSquaresDiagonal(this.selectedPiece, squareObj, this.selectedPiece.isKing);
-      if (areDiagonal) {
+      let helperBoard = this.generateHelperBoard()
+      let availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard,squareObj);
+      // console.log('available captures',availCaptures)
+      if (areDiagonal ) {
         console.log('move is valid')
         isValidMove = true;
+      }else if(availCaptures[0]){
+        if(availCaptures[0] == true){
+          let destSquares = availCaptures[1].destSquare
+          console.log("hiya",availCaptures[1])
+          let sqrObjCpy = squareObj
+          while (sqrObjCpy.row != this.selectedPiece.row && sqrObjCpy.row != this.selectedPiece.col){
+              for(let i = 0; i < destSquares.length; i ++){
+                if(destSquares[i].nextMove.row == sqrObjCpy.row && destSquares[i].nextMove.col == sqrObjCpy.col){
+                  let enemyRow = destSquares[i].enemyPiece.row
+                  let enemyCol = destSquares[i].enemyPiece.col
+                  this.checkerSquares[enemyRow][enemyCol].hasPiece = false
+                  this.checkerSquares[enemyRow][enemyCol].isKing = false
+                  sqrObjCpy = destSquares[i].currentMove
+                  // if(destSquares[i].nextMove.row == row && destSquares[i].nextMove.col == col ){
+                  //   break
+                  // }
+                }
+                }
+
+          }
+
+        }
+        isValidMove = true;
       }
-      
     }
       // Note 1: We can't check if it's one row up & dark square. Because then the piece can move to any dark square a row above it, not just the one directly diagonal to it. Which is why I added areSquaresDiagonal.
-
-      // if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) ||
-      //   (row2 - 1 == row ) || 
-      // (this.selectedPiece.isKing || (row2 -1 == row ||row2 + 1 == row)))
-      // ){
-      //   console.log("made move successfful")
-      //   isValidMove = true;
-      // }
-      // if(row == 0){
-      //   this.checkerSquares[row][col].isKing = true
-      //   console.log("kinged!")
-      // }
-    //   // console.log(this.validateCapture([row,col],[row2,col2],this.isWhiteMove));
-    //   if(!squareObj.isEmpty && ( (this.validateCapture([row,col],[row2,col2],isWhiteMove,this.selectedPiece.isKing) ) || (row2 + 1 == row ) || 
-    //   (this.selectedPiece.isKing || (row2 + 1 == row ||row2 - 1 == row))
-     
-    //   )){
-    //     console.log("made move successfful")
-    //     isValidMove = true;
-    //     if(row == 7){
-    //       this.checkerSquares[row][col].isKing = true
-    //       console.log("kinged!")
-    //     }
-    //   }
-    // }
+      //I deleted all my earlier spaghetti nasty code hehe xdd- kevin
     if (isValidMove){
       this.checkerSquares[row][col].hasPiece = true
       this.checkerSquares[row][col].isWhite = this.selectedPiece.isWhite;
@@ -323,65 +329,124 @@ export class GameBoardPage implements OnInit {
   }
 
   // TODO: check if there are any available capture moves for the player. Returns true/false, as well as a list of capture Moves the user can take. Move contains a source Square and a destination Square. 
-  checkCaptureMoves(): [boolean, Array<Move>] {
-    return;
+  //Notes: 
+  //1. Check that the immediate upper 2  square above the current piece are empty,if empty, ignore it.
+  //2. Check if the upper squares are not empty and same square.isWhite, then don't append anything
+  //3.if the upper square is not empty but of different color, then suggest the move that is 2 row up from the current selected piece given that it's not empty
+  //4. For cond 3, recursion may be needed so a selected piece is updated everytime everytime you reach condition 3.
+  //5. base condition for recursion is check to see if 1-4 conditions all fail, then simple return [false,[]] 
+  //king conditions:
+  //6. if piece selected is King, extend condition 1 and condition 2 to check lower 2 squares
+  //7. for condition 3, suggest 2 rows down from the current selected piece
+
+  //[boolean, Array<Move>]
+  checkCaptureMoves(selectedPiece,helperBoard,destSquare): any {
+    let moves = {
+      sourceSquare:selectedPiece,
+      destSquare:[],
+      isMoveAvail: false,
+      reachedEnd: false
+    }
+    let upperLeftSquare = helperBoard[selectedPiece.row - 1] == undefined ? false : helperBoard[selectedPiece.row - 1][selectedPiece.col - 1]  //make sure this is not null
+    let upperRightSquare = helperBoard[selectedPiece.row - 1] == undefined ? false : helperBoard[selectedPiece.row - 1][selectedPiece.col + 1] 
+    let lowerLeftSquare = helperBoard[selectedPiece.row + 1] == undefined ? false : helperBoard[selectedPiece.row + 1][selectedPiece.col - 1] 
+    let lowerRightSquare = helperBoard[selectedPiece.row + 1] == undefined ? false : helperBoard[selectedPiece.row + 1][selectedPiece.col + 1] 
+    let upperLeftMoves = this.checkCaptureMoveHelper(selectedPiece,"ul",upperLeftSquare,helperBoard,destSquare)
+    let upperRightMoves = this.checkCaptureMoveHelper(selectedPiece,"ur",upperRightSquare,helperBoard,destSquare)
+    let lowerLeftMoves, lowerRightMoves
+    if(selectedPiece.isKing){
+       lowerLeftMoves = this.checkCaptureMoveHelper(selectedPiece,"ll",lowerLeftSquare,helperBoard,destSquare)
+       lowerRightMoves =  this.checkCaptureMoveHelper(selectedPiece,"lr",lowerRightSquare,helperBoard,destSquare)
+    }else{
+      lowerLeftMoves = [false,[]]
+      lowerRightMoves = [false,[]]
+    }
+    //TODO: should only concat the moves that we have use as the path for taking pieces
+    // if(upperLeftMoves[1].length == 0 || upperRightMoves[1].length== 0 || lowerRightMoves.length == 0 || lowerLeftMoves.length == 0){
+    //   return [moves.isMoveAvail,moves]
+    // }
+    if(upperLeftMoves[0]){
+
+      moves.destSquare = moves.destSquare.concat(upperLeftMoves[1])
+    }
+    if(upperRightMoves[0]){
+      moves.destSquare = moves.destSquare.concat(upperRightMoves[1])
+    }
+    if(lowerRightMoves[0]){
+      moves.destSquare = moves.destSquare.concat(lowerRightMoves[1])
+    }
+    if(lowerLeftMoves[0]){
+      moves.destSquare = moves.destSquare.concat(lowerLeftMoves[1])
+    }
+    if(moves.destSquare.length > 0){
+      moves.isMoveAvail = true
+    }
+    return [moves.isMoveAvail,moves]
   }
 
-  validateCapture(emptySquare,piece,isWhiteMove,isKing){
-    console.log("piece is",piece)
-    console.log("want to move is",emptySquare)
-    if(emptySquare[0]== piece[0] && emptySquare[1] == piece[1]){
-      return true
-    }else if(emptySquare[0] < 0 || emptySquare[1] < 0 || emptySquare[0] > 7 ||  emptySquare[1] > 7 || this.checkerSquares[emptySquare[0]][emptySquare[1]].hasPiece == true){
-      return false
-    }
-    else{
-      let row,row2,col1,col2
-      if(isKing){
-        //if the place you want to move to is 
-        if(emptySquare[0] < piece[0]){
-          row = emptySquare[0]+ 1
-          row2 = row + 1;
-        }else{
-          row = emptySquare[0] -1 
-          row2 = row - 1
-        }
+ 
+  //The move object should contain {enemyPiece and Valid next move piece}
+  checkCaptureMoveHelper(selectedPiece,direction,adjacentSquare,helperBoard,destSquare): [boolean,Array<Move>]{
+    let move = []
+    if(adjacentSquare && adjacentSquare.hasPiece == true && adjacentSquare.isWhite != selectedPiece.isWhite && adjacentSquare.traversed == false){
+      let newSelectedPiece
+      if(direction == "ul"){
+        newSelectedPiece = helperBoard[adjacentSquare.row - 1] == null ? false :  helperBoard[adjacentSquare.row - 1][adjacentSquare.col - 1] 
+      }else if(direction == "ur"){
+        newSelectedPiece = helperBoard[adjacentSquare.row - 1] == null ? false :  helperBoard[adjacentSquare.row - 1][adjacentSquare.col + 1] 
+      }else if(direction == "ll"){
+        newSelectedPiece = helperBoard[adjacentSquare.row + 1] == null ? false :  helperBoard[adjacentSquare.row + 1][adjacentSquare.col - 1] 
+      }else if(direction == "lr"){
+        newSelectedPiece = helperBoard[adjacentSquare.row + 1] == null ? false :  helperBoard[adjacentSquare.row + 1][adjacentSquare.col + 1] 
       }
-      else if(isWhiteMove){
-        row = emptySquare[0]+ 1
-        row2 = row + 1;
-      }else{
-        row = emptySquare[0] -1 
-        row2 = row - 1
-      }
-      col1 = emptySquare[1] + 1
-      col2 = emptySquare[1] - 1
-      let cond1,cond2;
-      //if the row underneath or above the row is defined and that row's right column has piece that is the opponent color to the row:
-      if (this.checkerSquares[row] != undefined && this.checkerSquares[row][col1] != undefined && this.checkerSquares[row][col1].hasPiece == true && this.checkerSquares[row][col1].isWhite != isWhiteMove){
-        console.log("exe1")
-        //validate again at the next empty square row to the right side
-        cond1 = this.validateCapture([row2,col1 + 1],piece,isWhiteMove,isKing)
-        if(cond1 == true){
-          this.checkerSquares[row][col1].hasPiece = false; //
-          if(this.checkerSquares[row][col1] != undefined && this.checkerSquares[row][col1].isKing){
-            this.checkerSquares[row][col1].isKing = false
-          }
-        }
-      }
-      //if the row underneath or above the row is defined and that row's left column has piece that is the opponent color to the row:
-      if(this.checkerSquares[row] != undefined && this.checkerSquares[row][col2] != undefined && this.checkerSquares[row][col2].hasPiece == true && this.checkerSquares[row][col2].isWhite != isWhiteMove)
-      console.log("exe2")
-        cond2 = this.validateCapture([row2,col2 - 1],piece,isWhiteMove,isKing)
-        if(cond2 == true){
-          this.checkerSquares[row][col2].hasPiece = false;
-          if(this.checkerSquares[row][col2] != undefined && this.checkerSquares[row][col2].isKing){
-            this.checkerSquares[row][col2].isKing = false
-          }
-        }
-      return cond1 || cond2
-    }
 
+      if(newSelectedPiece && newSelectedPiece.hasPiece == false){ //if the square to move to is not null and is empty
+        newSelectedPiece.isWhite = this.selectedPiece.isWhite //set this for recursion color purpose
+        newSelectedPiece.isKing = this.selectedPiece.isKing 
+          helperBoard[adjacentSquare.row][adjacentSquare.col].traversed = true //avoid duplicate for king
+          //recursively look at the next sets of available moves
+        let recursiveMove = this.checkCaptureMoves(newSelectedPiece,helperBoard,destSquare) 
+        move.push({enemyPiece: adjacentSquare,
+          nextMove: newSelectedPiece,
+          currentMove:selectedPiece
+        })
+
+        console.log("egg or chicken first",recursiveMove)
+        if(recursiveMove[1].isMoveAvail != false){
+          for(let i = 0; i < recursiveMove[1].destSquare.length; i ++){
+            move.push(recursiveMove[1].destSquare[i])
+          }
+        } //only return if 
+
+          return [true,move]
+
+      }else{
+        return [false,[]]
+      }
+    }else{
+      return [false,[]]
+    }
+  }
+
+  //this function adds traversed, creates a temporary board everytime we check for capture, it helps avoid duplicate especially for king captures
+  generateHelperBoard(){
+    let newBoard = []
+    for(let i = 0; i < this.checkerSquares.length; i ++){
+      let rowList = []
+      for(let j = 0; j < this.checkerSquares[i].length;j++){
+        rowList.push({
+          row: this.checkerSquares[i][j].row,
+          col: this.checkerSquares[i][j].col,
+          isEmpty: this.checkerSquares[i][j].isEmpty, //is white square or dark square
+          hasPiece:this.checkerSquares[i][j].hasPiece, //check to see if this location has any piece
+          isWhite: this.checkerSquares[i][j].isWhite,  // purpose is to rendar board at different location depending on the player
+          isKing: this.checkerSquares[i][j].isKing, //if the piece is kinged 
+          traversed: false
+        })
+      }
+      newBoard.push(rowList)
+    }
+    return newBoard
   }
 
   // Utility functions: source https://stackoverflow.com/questions/19721439/download-json-object-as-a-file-from-browser 
@@ -394,25 +459,25 @@ export class GameBoardPage implements OnInit {
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
   }
-  uploadFile() {
-    var that = this;
-    var files = document.getElementById('selectFiles').files;
-    console.log(files);
-    if (files.length <= 0) {
-      return false;
-    }
+  // uploadFile() {
+  //   var that = this;
+  //   var files = document.getElementById('selectFiles').files;
+  //   console.log(files);
+  //   if (files.length <= 0) {
+  //     return false;
+  //   }
 
-    var fr = new FileReader();
+  //   var fr = new FileReader();
 
-    fr.onload = function(e) { 
-    console.log(e);
-      var result: Square[][] = JSON.parse(e.target.result);
-      console.log('result', result)
-      that.checkerSquares = result;
-      that.dbService.updateObjectAtPath(`games/${that.gameID}/board`, that.checkerSquares)
-    }
+  //   fr.onload = function(e) { 
+  //   console.log(e);
+  //     var result: Square[][] = JSON.parse(e.target.result);
+  //     console.log('result', result)
+  //     that.checkerSquares = result;
+  //     that.dbService.updateObjectAtPath(`games/${that.gameID}/board`, that.checkerSquares)
+  //   }
 
-    fr.readAsText(files.item(0));
-  }
+  //   fr.readAsText(files.item(0));
+  // }
 
 }
