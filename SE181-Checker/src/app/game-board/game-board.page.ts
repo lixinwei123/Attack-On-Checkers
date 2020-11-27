@@ -183,15 +183,15 @@ export class GameBoardPage implements OnInit {
     
   }
 
-    selectPiece(squareObj){
-      this.isPieceSelected = true;
-      this.selectedPiece =squareObj
-      let helperBoard = this.generateHelperBoard()
-      this.availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard);
-      // this.restoreColor(true)
-      console.log('goodies',this.availCaptures)
-      console.log("piece selected!",squareObj)
-    }
+  selectPiece(squareObj){
+    this.isPieceSelected = true;
+    this.selectedPiece =squareObj
+    let helperBoard = this.generateHelperBoard()
+    this.availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard);
+    // this.restoreColor(true)
+    console.log('goodies',this.availCaptures)
+    console.log("piece selected!",squareObj)
+  }
   
   makeMove(squareObj: Square) {
     // Everything needed before making a move goes into combineLatest. CombineLatest ensures all observables are done.
@@ -239,7 +239,9 @@ export class GameBoardPage implements OnInit {
   checkForceCapture(){
     for(let i = 0; i < this.checkerSquares.length; i++){
       for(let j = 0; j < this.checkerSquares[i].length; j++){
-        if(this.checkerSquares[i][j].isWhite == this.isPlayerWhite){
+        // must also check whether the square has a piece on it
+        if(this.checkerSquares[i][j].hasPiece && 
+          this.checkerSquares[i][j].isWhite == this.isPlayerWhite){
           let helperBoard = this.generateHelperBoard()
           let availMoves = this.checkCaptureMoves(this.checkerSquares[i][j],helperBoard)
             if(availMoves[0] == true){
