@@ -43,22 +43,23 @@ export class JoinGamePage implements OnInit {
     })
 
   }
- 
 
   generateId () {
     let id = Math.random().toString(36).substr(2, 5);
     console.log("id",id)
     this.route.navigate(['/game-board',id]);
   }
+
   checkCode(){
     
   }
+
   async presentPrompt() {
     let alert = await this.alertCtrl.create({
       inputs: [
         {
           id: 'id',
-          placeholder: 'Enter id'
+          placeholder: 'Enter Game ID'
         },
       ],
       buttons: [
@@ -78,7 +79,4 @@ export class JoinGamePage implements OnInit {
     });
     await alert.present();
   }
-    
-
-
 }

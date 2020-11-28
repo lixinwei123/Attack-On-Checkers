@@ -51,8 +51,13 @@ ion-button {
   margin: 1rem 0px;
   --background: #000000;
   font-family: 'Anime Ace', arial;
-  width: 60vh;
+  width: 20vh;
   text-size-adjust: 30vh;
   font-size: 14px;
   size: "large";
+}
+
+ion-toolbar {
+  --background: #000000;
+  color: #cccccc;
 }
