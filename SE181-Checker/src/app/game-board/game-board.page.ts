@@ -3,11 +3,10 @@ import { Square } from 'src/models/square';
 import { Observable, empty, combineLatest } from 'rxjs';
 import { DbService } from '../services/db.service';
 import { AuthService } from '../services/auth.service';
-import { tap, take, map } from 'rxjs/operators';
+import { tap, take, map, startWith } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { Move } from 'src/models/move';
-import { ToastController } from '@ionic/angular';
-// import { PassThrough } from 'stream';
+import { ToastController, AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-game-board',
@@ -31,11 +30,15 @@ export class GameBoardPage implements OnInit {
    gameID: string;
    singlePlayer = false;
    availCaptures: any;
+   isWhiteMove: boolean;
+   gameResult: string;
+   winner$: Observable<string>;
   constructor(
     protected authService: AuthService,
     protected dbService: DbService,
     protected activatedRoute: ActivatedRoute,
-    protected toastCtrl: ToastController
+    protected toastCtrl: ToastController,
+    protected alertCtrl: AlertController,
   ) {
     // this.initialBlackSide();
     console.log(this.checkerSquares);
@@ -70,10 +73,30 @@ export class GameBoardPage implements OnInit {
             )
           }
 
-          this.checkerSquares$.subscribe();
+          this.checkerSquares$.pipe(
+            tap(_ => {
+              // Check win condition with every change
+              this.gameResult = this.checkWinCondition(this.isPlayerWhite,this.isWhiteMove);
+              console.log('game result: ', this.gameResult)
+              this.dbService.updateObjectAtPath(`games/${this.gameID}/`, {winner: this.gameResult})
+            })
+          ).subscribe();
           console.log("isPlayerWhite",this.isPlayerWhite );
           this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
-          this.isWhiteMove$ = this.dbService.getObjectValues(`games/${this.gameID}/isWhiteMove`)
+          this.isWhiteMove$ = this.dbService.getObjectValues<boolean>(`games/${this.gameID}/isWhiteMove`).pipe(
+            startWith(true),
+            tap(move => this.isWhiteMove = move)
+          )
+          this.winner$ = this.dbService.getObjectValues<string>(`games/${this.gameID}/winner`).pipe(
+            tap(winner => {
+              if (winner == 'white') {
+                this.presentAlert('White wins!')
+              }
+              if (winner == 'black') {
+                this.presentAlert('Black wins!')
+              }
+            })
+          )
 
       })
     })
@@ -253,6 +276,19 @@ export class GameBoardPage implements OnInit {
     return false
   }
 
+  async presentAlert(msg) {
+    let alert = await this.alertCtrl.create({
+      message: msg,
+      buttons: [
+        {
+          text: 'Dismiss',
+          role: 'cancel'
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   async presentToast(msg) {
     const toast = await this.toastCtrl.create({
       message: msg,
@@ -368,9 +404,93 @@ export class GameBoardPage implements OnInit {
     }
   }
 
-  // TODO: returns white if white wins. Black if black wins. Neither if no one has won.
-  checkWinCondition(): 'white' | 'black' | 'neither' {
-    return;
+  // returns white if white wins. Black if black wins. Neither if no one has won.
+  checkWinCondition(isPlayerWhite: boolean, isWhiteMove: boolean): 'white' | 'black' | 'neither' {
+    if (isPlayerWhite != isWhiteMove) {
+      return 'neither'
+    }
+    const isMyPiece = function(checkerSquares: Square[][], i, j) {
+      return checkerSquares[i][j].hasPiece && checkerSquares[i][j].isWhite == isPlayerWhite
+    }
+
+    var isGameOverForMe = true;
+    for (var i = 0; i < this.checkerSquares.length; i++) {
+      for (var j = 0; j < this.checkerSquares.length; j++) {
+        if (isMyPiece(this.checkerSquares, i, j)) {
+          var possibleMoves = this.getAllMoves(this.checkerSquares, this.checkerSquares[i][j])
+          if (possibleMoves.length > 0) {
+            isGameOverForMe = false;
+          }
+        }
+      }
+    }
+    if (isGameOverForMe) {
+      return isPlayerWhite ? 'black' : 'white'
+    } else {
+      return 'neither';
+    }
+  }
+
+  // Get all possible move for a certain square
+  getAllMoves(checkerSquares: Square[][], selectedPiece: Square): Array<Square> {
+    const tryGetSquare = (checkerSquares: Square[][], i: number, j: number): Square => {
+      try {
+        var square = checkerSquares[i][j]
+        return square;
+      }
+      catch (_) {
+        return null;
+      }
+    }
+    var possibleMovesToReturn: Square[] = [] // Stores all possible moves as squares
+    const helperBoard = this.generateHelperBoard()
+    const arr = this.checkCaptureMoves(selectedPiece, helperBoard)
+
+    // 1. Add all possible capture squares
+    if (arr[0] == true) {
+      arr[1].forEach(res => {
+        possibleMovesToReturn.push(res.nextMove)
+      })
+    }
+
+    const row = selectedPiece.row
+    const col = selectedPiece.col
+
+    if (selectedPiece.isKing) {
+      // Check all squares surrounding
+      const diagonalUpLeft = tryGetSquare(this.checkerSquares, row-1, col-1)
+      const diagonalUpRight = tryGetSquare(this.checkerSquares, row-1, col+1)
+      const diagonalDownLeft = tryGetSquare(this.checkerSquares, row+1, col-1)
+      const diagonalDownRight = tryGetSquare(this.checkerSquares, row+1, col+1)
+
+      if (diagonalUpLeft && !diagonalUpLeft.hasPiece) {
+        possibleMovesToReturn.push(diagonalUpLeft)
+      }
+      if (diagonalUpRight && !diagonalUpRight.hasPiece) {
+        possibleMovesToReturn.push(diagonalUpRight)
+      }
+
+      if (diagonalDownLeft && !diagonalDownLeft.hasPiece) {
+        possibleMovesToReturn.push(diagonalDownLeft)
+      }
+
+      if (diagonalDownRight && !diagonalDownRight.hasPiece) {
+        possibleMovesToReturn.push(diagonalDownRight)
+      }
+
+    } else {
+      const diagonalUpLeft = tryGetSquare(checkerSquares, row-1, col-1)
+      const diagonalUpRight = tryGetSquare(checkerSquares, row-1, col+1)
+      if (diagonalUpLeft && !diagonalUpLeft.hasPiece) {
+        possibleMovesToReturn.push(diagonalUpLeft)
+      }
+      if (diagonalUpRight && !diagonalUpRight.hasPiece) {
+        possibleMovesToReturn.push(diagonalUpRight)
+      }
+
+    }
+
+    return possibleMovesToReturn;
   }
 
   restoreColor(isSuggest){
