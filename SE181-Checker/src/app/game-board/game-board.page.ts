@@ -33,6 +33,7 @@ export class GameBoardPage implements OnInit {
    isWhiteMove: boolean;
    gameResult: string;
    winner$: Observable<string>;
+   highlightedSquares: boolean[][] = [];
   constructor(
     protected authService: AuthService,
     protected dbService: DbService,
@@ -45,6 +46,7 @@ export class GameBoardPage implements OnInit {
    }
 
   ngOnInit() {
+    this.highlightedSquares = Array(8).fill(8).fill(false);
     this.authService.getUserId().subscribe(uid => {
       console.log('my user ID is ', uid);
     })
@@ -215,9 +217,29 @@ export class GameBoardPage implements OnInit {
     this.selectedPiece =squareObj
     let helperBoard = this.generateHelperBoard()
     this.availCaptures = this.checkCaptureMoves(this.selectedPiece,helperBoard);
-    // this.restoreColor(true)
+    
+    // When there is capture moves available, only show highlighted squares for those.
+      this.resetHighlightedSquares();
+      var allPossibleMoves: Square[] = this.getAllMoves(helperBoard, this.selectedPiece);
+      allPossibleMoves.forEach(square => {
+        var row = square.row
+        var col = square.col
+        this.highlightedSquares[row][col] = true;
+      })
+
     console.log('goodies',this.availCaptures)
     console.log("piece selected!",squareObj)
+  }
+
+  resetHighlightedSquares() {
+    this.highlightedSquares = []
+    for (var i = 0; i < 8; i++) {
+      this.highlightedSquares.push([])
+      for (var j = 0; j < 8; j++) {
+        this.highlightedSquares[i][j] = false;
+      }
+    }
+
   }
   
   makeMove(squareObj: Square) {
@@ -407,9 +429,8 @@ export class GameBoardPage implements OnInit {
       boardToUpdate = this.flipBoard(boardToUpdate)
     }
     this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, boardToUpdate);
-    if(this.isPieceSelected){
-      // this.restoreColor(false)
-    }
+
+    this.resetHighlightedSquares();
   }
 
   // returns white if white wins. Black if black wins. Neither if no one has won.
@@ -457,7 +478,7 @@ export class GameBoardPage implements OnInit {
 
     // 1. Add all possible capture squares
     if (arr[0] == true) {
-      arr[1].forEach(res => {
+      arr[1].destSquare.forEach(res => {
         possibleMovesToReturn.push(res.nextMove)
       })
     }

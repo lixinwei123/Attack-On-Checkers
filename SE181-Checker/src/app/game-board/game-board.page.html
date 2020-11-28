@@ -6,7 +6,11 @@
 
 <ion-content>
   <!-- col.isEmpty is for white space -->
+
+  <!-- Winner returns either 'white', 'black', or 'neither' -->
  <p>Who's winning: {{winner$ | async}} </p>
+
+ <!-- isWhiteMove returns either true or false -->
  <p>Is it white's turn: {{isWhiteMove$ | async}}</p>
 <!-- <button (click) = "test($event)" >hwello</button> -->
  <!-- TODO: remove these 2 buttons, these are for debugging purposes -->
@@ -21,9 +25,9 @@
     <!-- multiplayer -->
     <div *ngFor = "let col of row; let c = index" class = "board-square" > 
       <!-- white square -->
-      <ion-col *ngIf = "col.isEmpty" class = "white-square" (click) = "makeMove(col)">
+      <ion-col *ngIf = "col.isEmpty" class = "white-square" (click) = "makeMove(col)" [ngClass]="{'highlight-square': highlightedSquares[r][c]}">
         <!-- TODO: Test purposes, delete later -->
-        <p>{{col.row}}, {{col.col}}</p> 
+        <!-- <p>{{col.row}}, {{col.col}}</p>  -->
         <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
           <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
           <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
@@ -35,7 +39,7 @@
       </ion-col>
 
       <!-- black square -->
-      <ion-col *ngIf = "!col.isEmpty && !col.isSuggest" class = "black-square " (click) = "makeMove(col)">
+      <ion-col *ngIf = "!col.isEmpty && !col.isSuggest" class = "black-square " [ngClass]="{'highlight-square': highlightedSquares[r][c]}" (click) = "makeMove(col)">
         <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
           <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
           <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
