@@ -73,14 +73,18 @@ export class GameBoardPage implements OnInit {
             )
           }
 
-          this.checkerSquares$.pipe(
-            tap(_ => {
-              // Check win condition with every change
-              this.gameResult = this.checkWinCondition(this.isPlayerWhite,this.isWhiteMove);
-              console.log('game result: ', this.gameResult)
-              this.dbService.updateObjectAtPath(`games/${this.gameID}/`, {winner: this.gameResult})
-            })
-          ).subscribe();
+          // this.checkerSquares$.pipe(
+          //   tap(_ => {
+          //     // Check win condition with every change
+          //   })
+          // ).subscribe();
+          this.checkerSquares$.subscribe(_ => {
+              this.dbService.getObjectValues<boolean>(`games/${this.gameID}/isWhiteMove`).subscribe(isWhiteMove => {
+                this.gameResult = this.checkWinCondition(this.isPlayerWhite,isWhiteMove);
+                console.log('game result: ', this.gameResult)
+                this.dbService.updateObjectAtPath(`games/${this.gameID}/`, {winner: this.gameResult})
+              })
+          });
           console.log("isPlayerWhite",this.isPlayerWhite );
           this.dbService.updateObjectAtPath(`games/${this.gameID}/board`, this.checkerSquares);
           this.isWhiteMove$ = this.dbService.getObjectValues<boolean>(`games/${this.gameID}/isWhiteMove`).pipe(
@@ -219,10 +223,14 @@ export class GameBoardPage implements OnInit {
   makeMove(squareObj: Square) {
     // Everything needed before making a move goes into combineLatest. CombineLatest ensures all observables are done.
     const isWhiteMove$ = this.dbService.getObjectValues<boolean>(`games/${this.gameID}/isWhiteMove`)
-    combineLatest([isWhiteMove$]).pipe(
-      take(1)
-    ).subscribe(res => {
-      var isWhiteMove: boolean = res[0];
+    // combineLatest([isWhiteMove$]).pipe(
+      // take(1)
+    // )
+    isWhiteMove$
+    .pipe(take(1))
+    .subscribe(res => {
+      // var isWhiteMove: boolean = res[0];
+      var isWhiteMove = res;
       if (isWhiteMove == null) {
         isWhiteMove = true;
       }
@@ -412,12 +420,13 @@ export class GameBoardPage implements OnInit {
     const isMyPiece = function(checkerSquares: Square[][], i, j) {
       return checkerSquares[i][j].hasPiece && checkerSquares[i][j].isWhite == isPlayerWhite
     }
+    var helperBoard = this.generateHelperBoard();
 
     var isGameOverForMe = true;
-    for (var i = 0; i < this.checkerSquares.length; i++) {
-      for (var j = 0; j < this.checkerSquares.length; j++) {
-        if (isMyPiece(this.checkerSquares, i, j)) {
-          var possibleMoves = this.getAllMoves(this.checkerSquares, this.checkerSquares[i][j])
+    for (var i = 0; i < helperBoard.length; i++) {
+      for (var j = 0; j < helperBoard.length; j++) {
+        if (isMyPiece(helperBoard, i, j)) {
+          var possibleMoves = this.getAllMoves(helperBoard, helperBoard[i][j])
           if (possibleMoves.length > 0) {
             isGameOverForMe = false;
           }
