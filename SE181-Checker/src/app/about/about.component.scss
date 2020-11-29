@@ -5,8 +5,23 @@ div {
 h1 {
     font-weight: bold;
     font-size: 1.4em;
+    color: #d6d6d6;
 }
 
 p {
     padding-left: 10px;
+    color: #cccccc;
+}
+
+a {
+    color: #1f79ff;
+}
+
+ion-toolbar {
+  --background: #000000;
+  color: #cccccc;
+}
+
+ion-content {
+    --background: #1a1a1a;
 }
