@@ -6,30 +6,94 @@
 
 <ion-content>
   <!-- col.isEmpty is for white space -->
-<ion-grid >
-  <ion-row *ngFor = "let row of checkerSquares" >
-    <div *ngFor = "let col of row" class = "board-square">
+
+  <!-- Winner returns either 'white', 'black', or 'neither' -->
+ <p>Who's winning: {{winner$ | async}} </p>
+
+ <!-- isWhiteMove returns either true or false -->
+ <p>Is it white's turn: {{isWhiteMove$ | async}}</p>
+<!-- <button (click) = "test($event)" >hwello</button> -->
+ <!-- TODO: remove these 2 buttons, these are for debugging purposes -->
+ <!-- To save a board, click on download. To upload a board, choose files and select your JSON file. then click upload. -->
+ <ion-button (click)="downloadObjectAsJson(checkerSquares, gameID)">Download Board as JSON</ion-button>
+ <ion-button (click)="uploadFile()">Upload board as JSON</ion-button>
+ <input type="file" id="selectFiles" value="Import" /><br />
+
+
+<ion-grid  *ngIf = "!singlePlayer">
+  <ion-row *ngFor = "let row of checkerSquares; let r = index" >
+    <!-- multiplayer -->
+    <div *ngFor = "let col of row; let c = index" class = "board-square" > 
       <!-- white square -->
-      <ion-col *ngIf = "col.isEmpty" class = "white-square" (click) = "makeMove(col)">
+      <ion-col *ngIf = "col.isEmpty" class = "white-square" (click) = "makeMove(col)" [ngClass]="{'highlight-square': highlightedSquares[r][c]}">
+        <!-- TODO: Test purposes, delete later -->
+        <!-- <p>{{col.row}}, {{col.col}}</p>  -->
         <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
-          <ion-icon name="radio-button-on-outline"></ion-icon>
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
         </button>
         <button ion-button icon-only *ngIf="col.hasPiece && !col.isWhite" class = "checker-piece black-piece" [disabled] = "isPlayerWhite" (click) = "selectPiece(col)">
-          <ion-icon name="radio-button-on-outline"></ion-icon>
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
         </button>
       </ion-col>
 
       <!-- black square -->
-      <ion-col *ngIf = "!col.isEmpty" class = "black-square " (click) = "makeMove(col)">
+      <ion-col *ngIf = "!col.isEmpty && !col.isSuggest" class = "black-square " [ngClass]="{'highlight-square': highlightedSquares[r][c]}" (click) = "makeMove(col)">
         <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
-          <ion-icon name="radio-button-on-outline"></ion-icon>
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
         </button>
         <button ion-button icon-only *ngIf="col.hasPiece && !col.isWhite" class = "checker-piece black-piece" [disabled] = "isPlayerWhite" (click) = "selectPiece(col)">
-          <ion-icon name="radio-button-on-outline"></ion-icon>
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+        <button *ngIf = "!col.hasPiece" class = "checker-piece"></button>
+      </ion-col>
+
+      <ion-col *ngIf = "!col.isEmpty && col.isSuggest" class = "highlight-square " (click) = "makeMove(col)">
+        <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isPlayerWhite" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+        <button ion-button icon-only *ngIf="col.hasPiece && !col.isWhite" class = "checker-piece black-piece" [disabled] = "isPlayerWhite" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
         </button>
         <button *ngIf = "!col.hasPiece" class = "checker-piece"></button>
       </ion-col>
     </div>
   </ion-row>
 </ion-grid>
+
+
+     <!-- single player -->
+  <ion-grid *ngIf = "singlePlayer" >
+    <ion-row *ngFor = "let row of checkerSquares$ | async" >
+    <div *ngFor = "let col of row" class = "board-square" >
+      <ion-col *ngIf = "col.isEmpty" class = "white-square" (click) = "makeMove(col)">
+        <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = "!isWhiteMove" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+        <button ion-button icon-only *ngIf="col.hasPiece && !col.isWhite" class = "checker-piece black-piece"  [disabled] = "isWhiteMove" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+      </ion-col>
+
+      <ion-col *ngIf = "!col.isEmpty" class = "black-square " (click) = "makeMove(col)">
+        <button ion-button icon-only *ngIf="col.hasPiece && col.isWhite" class = "checker-piece white-piece" [disabled] = " !isWhiteMove" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+        <button ion-button icon-only *ngIf="col.hasPiece && !col.isWhite" class = "checker-piece black-piece"  [disabled] = "isWhiteMove" (click) = "selectPiece(col)">
+          <ion-icon name="radio-button-on-outline" *ngIf="!col.isKing"></ion-icon>
+          <ion-icon name="aperture-outline" *ngIf="col.isKing"></ion-icon>
+        </button>
+        <button *ngIf = "!col.hasPiece" class = "checker-piece"></button>
+      </ion-col>
+    </div>
+  </ion-row>
+  </ion-grid>
 </ion-content>

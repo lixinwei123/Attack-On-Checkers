@@ -1,5 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
+import { DbService } from '../services/db.service';
+import { ToastController } from '@ionic/angular';
+import { Observable } from 'rxjs';
+import { map, mergeMap, switchMap } from 'rxjs/operators';
 import { AlertController } from  '@ionic/angular';
 
 @Component({
@@ -8,10 +13,34 @@ import { AlertController } from  '@ionic/angular';
   styleUrls: ['./join-game.page.scss'],
 })
 export class JoinGamePage implements OnInit {
+  username: string;
+  username$: Observable<string>;
 
-  constructor(private alertCtrl: AlertController,private route: Router) { }
+  constructor(private route: Router,
+    private authService: AuthService,
+    private dbService: DbService,
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController,
+    ) { }
 
   ngOnInit() {
+    this.username$ = this.authService.getUserId().pipe(
+      switchMap(uid => this.dbService.getObjectValues<string>(`usernames/${uid}`))
+    )
+  }
+
+  updateUsername() {
+    this.authService.getUserId().subscribe(async (uid) => {
+      if (this.username) {
+        this.dbService.updateObjectAtPath(`usernames`, {[uid]: this.username})
+        const toast = await this.toastCtrl.create({
+          message: `Username updated!`,
+          duration: 1000
+        })
+        toast.present();
+
+      }
+    })
 
   }
  

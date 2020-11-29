@@ -1,15 +1,16 @@
+<ion-content>
+  <div class="container">
+    <ion-textarea placeholder="Enter username..." [value]="username$ | async" debounce=2000
+      (ionChange)="updateUsername()" [(ngModel)]="username"></ion-textarea>
+    <ion-button (click)="presentPrompt()">
+      Join Game
+    </ion-button>
+    <br>
+    <ion-button (click)="generateId()">
+      Create Game
+    </ion-button>
+  </div>
 
-<ion-content >
-      <div class="container">
-          <ion-button (click)="presentPrompt()" >
-            Join Game
-          </ion-button>
-          <br>
-          <ion-button (click)="generateId()">
-            Create Game
-          </ion-button>
-        </div>
-    
 
 
 
