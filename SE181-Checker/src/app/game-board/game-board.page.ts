@@ -107,7 +107,8 @@ export class GameBoardPage implements OnInit {
               this.presentAlert('Black wins!')
             }
           })
-        )
+        );
+        this.winner$.subscribe();
       })
     })
   }
@@ -488,7 +489,7 @@ export class GameBoardPage implements OnInit {
     const row = selectedPiece.row
     const col = selectedPiece.col
 
-    if (selectedPiece.isKing) {
+    if (selectedPiece.isKing && selectedPiece.hasPiece) {
       // Check all squares surrounding
       const diagonalUpLeft = tryGetSquare(this.checkerSquares, row - 1, col - 1)
       const diagonalUpRight = tryGetSquare(this.checkerSquares, row - 1, col + 1)
@@ -511,7 +512,7 @@ export class GameBoardPage implements OnInit {
         possibleMovesToReturn.push(diagonalDownRight)
       }
 
-    } else {
+    } else if (selectedPiece.hasPiece && !selectedPiece.isKing) {
       const diagonalUpLeft = tryGetSquare(checkerSquares, row - 1, col - 1)
       const diagonalUpRight = tryGetSquare(checkerSquares, row - 1, col + 1)
       if (diagonalUpLeft && !diagonalUpLeft.hasPiece) {
