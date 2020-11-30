@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AboutComponent } from '../about/about.component';
-import { CreditsComponent } from "../credits/credits.component";
+import { CreditsComponent } from '../credits/credits.component';
 
 @Component({
   selector: 'app-home',

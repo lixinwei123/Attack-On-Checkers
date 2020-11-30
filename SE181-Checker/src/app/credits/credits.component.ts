@@ -6,7 +6,7 @@ import { ModalController } from '@ionic/angular';
   templateUrl: './credits.component.html',
   styleUrls: ['./credits.component.scss'],
 })
-  
+
 export class CreditsComponent implements OnInit {
   constructor(private modalCtrl: ModalController) { }
 
