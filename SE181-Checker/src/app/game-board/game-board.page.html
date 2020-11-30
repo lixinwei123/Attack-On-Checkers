@@ -31,7 +31,7 @@
   <!-- <ion-button (click)="uploadFile()">Upload board as JSON</ion-button> -->
   <!-- <input type="file" id="selectFiles" value="Import" /><br /> -->
 
-  <p>{{(isPlayerWhite && !(isWhiteMove$ | async)) || (!isPlayerWhite && (isWhiteMove$ | async)) ? "⌛ Opponent ⌛" : "Opponent"}}</p>
+  <p>{{(isPlayerWhite && (isWhiteMove$ | async) === false) || (!isPlayerWhite && (isWhiteMove$ | async)) ? "⌛ Opponent ⌛" : "Opponent"}}</p>
   <ion-grid *ngIf="!singlePlayer">
     <ion-row *ngFor="let row of checkerSquares; let r = index">
       <!-- multiplayer -->
@@ -85,7 +85,7 @@
       </div>
     </ion-row>
   </ion-grid>
-  <p>{{(isPlayerWhite && (isWhiteMove$ | async)) || ((!isPlayerWhite && !(isWhiteMove$ | async))) ? "⌛ Player ⌛" : "Player"}}</p>
+  <p>{{(isPlayerWhite && (isWhiteMove$ | async)) || ((!isPlayerWhite && (isWhiteMove$ | async) === false)) ? "⌛ Player ⌛" : "Player"}}</p>
 
 
   <!-- single player -->
