@@ -7,10 +7,11 @@ import { map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class AuthService {
-
+  
   constructor(
     private afAuth: AngularFireAuth,
-  ) { }
+  ) { 
+  }
 
   signInAnonymously() {
     this.afAuth.signInAnonymously();
@@ -23,6 +24,6 @@ export class AuthService {
   getUserId(): Observable<string> {
     return this.getUserInfo().pipe(
       map(user => user.uid)
-    );
+    )
   }
 }

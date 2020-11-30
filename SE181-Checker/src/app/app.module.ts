@@ -21,8 +21,8 @@ import { AuthService } from './services/auth.service';
   declarations: [AppComponent],
   entryComponents: [],
   imports: [
-    BrowserModule,
-    IonicModule.forRoot(),
+    BrowserModule, 
+    IonicModule.forRoot(), 
     AngularFireModule.initializeApp(environment.firebaseConfig),
     AngularFireAuthModule,
     AngularFireDatabaseModule,

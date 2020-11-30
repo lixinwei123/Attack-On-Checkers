@@ -12,7 +12,7 @@ export class DbService {
   constructor(
     protected afDb: AngularFireDatabase,
   ) { }
-
+  
   public uuidv4() {
     let d = new Date().getTime(); // Timestamp
     // tslint:disable-next-line:max-line-length
