@@ -1,24 +1,17 @@
-# SE181
+# [Attack on Checkers](https://attackoncheckers.web.app/home)
 
-SE181 project
+SE181 project \ 
+Kevin Li, Kevin Wu, Sahithi Pisupati, Tri Le, Jiongheng Li
 
 # Installation steps
 
 1. Install Node https://nodejs.org/en/
-2. `npm install -g ionic`
-3. cd into folder contain `src/`
-4. `npm install`
-5. `ionic serve `
+2. cd into folder contain `SE181-Checker/src/`
+3. `npm ci`
+4. `ionic serve `
 
 # Creating pages
 
-1. `ionic generate page <pageName>`
-2. cd into `src/<pageName>`
-
-# Github Actions Guide
-
-https://focisolutions.com/2020/04/github-actions-deploying-an-angular-app/
-
-# Website link
-https://attackoncheckers.web.app/ 
-
+1. cd into `SE181-Checker/src/`
+2. `ionic generate page <pageName>`
+3. cd into `src/<pageName>`
