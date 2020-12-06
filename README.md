@@ -1,6 +1,6 @@
 # [Attack on Checkers](https://attackoncheckers.web.app/home)
 
-SE181 project \ 
+SE181 project  
 Kevin Li, Kevin Wu, Sahithi Pisupati, Tri Le, Jiongheng Li
 
 # Installation steps
